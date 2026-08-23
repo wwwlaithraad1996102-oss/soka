@@ -1,75 +1,100 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SOKA — مشاهدة الأفلام والمسلسلات</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#08080b">
+  <meta name="description" content="SOKA — منصة أفلام ومسلسلات للمحتوى المصرح بعرضه.">
+  <title>SOKA — أفلام ومسلسلات</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header class="topbar">
-  <div class="brand">SOKA</div>
-  <nav>
-    <a href="#home">الرئيسية</a><a href="#movies">الأفلام</a><a href="#series">المسلسلات</a>
-    <a href="#search">البحث</a><a class="login" href="#login">تسجيل الدخول</a>
-  </nav>
-</header>
+  <div id="toast" class="toast"></div>
+  <header class="topbar">
+    <a class="brand" href="#home">SOKA</a>
+    <nav>
+      <a href="#home">الرئيسية</a>
+      <a href="#movies">الأفلام</a>
+      <a href="#series">المسلسلات</a>
+      <a href="#search">البحث</a>
+      <a id="adminNav" class="hidden" href="#admin">لوحة التحكم</a>
+      <a id="authNav" class="login" href="#login">تسجيل الدخول</a>
+      <button id="logoutBtn" class="ghost hidden">خروج</button>
+    </nav>
+  </header>
 
-<main>
-<section id="home" class="hero">
-  <div class="hero-content">
-    <span class="badge">SOKA ORIGINAL</span>
-    <h1>عالمك السينمائي في مكان واحد</h1>
-    <p>واجهة حديثة للأفلام والمسلسلات والمواسم والحلقات.</p>
-    <a class="btn" href="#series">استكشف الآن</a>
-  </div>
-</section>
+  <main>
+    <section id="home" class="hero">
+      <div class="hero-content">
+        <span class="badge">SOKA ORIGINAL</span>
+        <h1>عالمك السينمائي في مكان واحد</h1>
+        <p>أفلام ومسلسلات ومواسم وحلقات في واجهة واحدة.</p>
+        <a class="btn" href="#movies">استكشف الآن</a>
+      </div>
+    </section>
 
-<section class="section" id="movies">
-  <div class="section-head"><h2>🎬 أحدث الأفلام</h2><a href="#movies">عرض الكل</a></div>
-  <div class="grid" id="movieGrid"></div>
-</section>
+    <section class="section" id="movies">
+      <div class="section-head"><h2>🎬 أحدث الأفلام</h2><a href="#movies">عرض الكل</a></div>
+      <div id="movieGrid" class="grid"><div class="loading">جاري التحميل…</div></div>
+    </section>
 
-<section class="section" id="series">
-  <div class="section-head"><h2>📺 أحدث المسلسلات</h2><a href="#series">عرض الكل</a></div>
-  <div class="grid" id="seriesGrid"></div>
-</section>
+    <section class="section" id="series">
+      <div class="section-head"><h2>📺 أحدث المسلسلات</h2><a href="#series">عرض الكل</a></div>
+      <div id="seriesGrid" class="grid"><div class="loading">جاري التحميل…</div></div>
+    </section>
 
-<section class="section" id="search">
-  <div class="section-head"><h2>🔎 البحث</h2></div>
-  <input id="searchInput" class="search" placeholder="ابحث عن فيلم أو مسلسل..." oninput="searchContent()">
-  <div class="grid" id="searchGrid"></div>
-</section>
+    <section class="section" id="search">
+      <div class="section-head"><h2>🔎 البحث</h2></div>
+      <input id="searchInput" class="search" placeholder="ابحث عن فيلم أو مسلسل…">
+      <div id="searchGrid" class="grid"></div>
+    </section>
 
-<section class="section detail" id="watch">
-  <div class="player"><div>▶</div><p>ضع رابط فيديو تملكه أو لديك ترخيص لاستخدامه من لوحة التحكم.</p></div>
-  <h2 id="watchTitle">اختر حلقة للمشاهدة</h2>
-  <div class="actions"><button onclick="alert('هذه نسخة واجهة تجريبية')">الحلقة السابقة</button><button onclick="alert('هذه نسخة واجهة تجريبية')">الحلقة التالية</button></div>
-</section>
+    <section class="section" id="login">
+      <div class="auth-card">
+        <h2>🔐 تسجيل الدخول</h2>
+        <p>ادخل بحسابك في SOKA. حساب المدير يظهر له رابط لوحة التحكم تلقائيًا.</p>
+        <form id="loginForm">
+          <input id="email" required type="email" autocomplete="email" placeholder="البريد الإلكتروني">
+          <input id="password" required type="password" autocomplete="current-password" placeholder="كلمة المرور">
+          <button class="btn" type="submit">دخول</button>
+        </form>
+        <p class="muted">ليس لديك حساب؟</p>
+        <form id="signupForm">
+          <input id="signupName" required type="text" placeholder="الاسم">
+          <input id="signupEmail" required type="email" placeholder="البريد الإلكتروني">
+          <input id="signupPassword" required minlength="6" type="password" placeholder="كلمة المرور (6 أحرف على الأقل)">
+          <button class="btn secondary" type="submit">إنشاء حساب</button>
+        </form>
+      </div>
+    </section>
 
-<section class="section auth" id="login">
-  <h2>🔐 تسجيل الدخول</h2>
-  <form onsubmit="event.preventDefault(); alert('واجهة تجريبية — اربطها بقاعدة بيانات عند النشر');">
-    <input required type="email" placeholder="البريد الإلكتروني">
-    <input required type="password" placeholder="كلمة المرور">
-    <button class="btn" type="submit">دخول</button>
-  </form>
-</section>
+    <section class="section" id="detail">
+      <div id="detailContent"></div>
+    </section>
 
-<section class="section admin" id="admin">
-  <div class="section-head"><h2>⚙️ لوحة التحكم</h2></div>
-  <div class="admin-grid">
-    <div class="panel"><h3>إضافة محتوى</h3>
-      <input id="title" placeholder="اسم الفيلم/المسلسل">
-      <select id="type"><option value="movie">فيلم</option><option value="series">مسلسل</option></select>
-      <input id="image" placeholder="رابط صورة البوستر">
-      <input id="video" placeholder="رابط الفيديو المرخص">
-      <button class="btn" onclick="addItem()">إضافة</button>
-    </div>
-    <div class="panel"><h3>إدارة الحلقات</h3><p>في النسخة الإنتاجية: إضافة موسم، رقم الحلقة، العنوان، الصورة، رابط الفيديو، والجودة.</p></div>
-  </div>
-</section>
-</main>
+    <section class="section" id="watch">
+      <div id="watchContent"></div>
+    </section>
 
-<footer>SOKA © 2026 — منصة واجهة تجريبية للمحتوى المصرح باستخدامه.</footer>
-<script src="app.js"></script>
-</body></html>
+    <section class="section hidden" id="admin">
+      <div class="section-head"><h2>⚙️ لوحة تحكم SOKA</h2></div>
+      <div id="stats" class="stats"></div>
+      <div class="admin-tabs">
+        <button data-tab="moviesAdmin" class="active">الأفلام</button>
+        <button data-tab="seriesAdmin">المسلسلات</button>
+        <button data-tab="seasonsAdmin">المواسم</button>
+        <button data-tab="episodesAdmin">الحلقات</button>
+      </div>
+      <div id="moviesAdmin" class="admin-panel"></div>
+      <div id="seriesAdmin" class="admin-panel hidden"></div>
+      <div id="seasonsAdmin" class="admin-panel hidden"></div>
+      <div id="episodesAdmin" class="admin-panel hidden"></div>
+    </section>
+  </main>
+
+  <footer>SOKA © 2026 — للمحتوى المصرح بعرضه فقط.</footer>
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="app.js"></script>
+</body>
+</html>
