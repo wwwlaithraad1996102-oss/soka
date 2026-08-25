@@ -1,578 +1,308 @@
 (() => {
   'use strict';
 
-  console.log('SOKA app.js بدأ التشغيل');
-
   const cfg = window.SOKA_CONFIG || {};
 
-  const client =
-    window.supabase &&
-    cfg.supabaseUrl &&
-    cfg.supabaseAnonKey
-      ? window.supabase.createClient(
-          cfg.supabaseUrl,
-          cfg.supabaseAnonKey
-        )
-      : null;
-
-  const $ = (selector) =>
-    document.querySelector(selector);
-
-  function toast(message, error = false) {
-    const el = $('#toast');
-
-    if (el) {
-      el.textContent = message;
-      el.className =
-        'toast show ' +
-        (error ? 'error' : '');
-
-      setTimeout(() => {
-        el.className = 'toast';
-      }, 5000);
+  const show = (message, type = '') => {
+    const box = document.getElementById('message');
+    if (!box) {
+      alert(message);
+      return;
     }
 
-    console.log(
-      error ? 'SOKA ERROR:' : 'SOKA:',
-      message
-    );
-  }
+    box.textContent = message;
+    box.className = 'message ' + type;
+  };
 
-  // ---------------------------------------------
-  // فحص Supabase
-  // ---------------------------------------------
-
-  if (!cfg.supabaseUrl) {
-    toast(
-      'خطأ: supabaseUrl غير موجود في config.js',
-      true
+  // فحص الإعدادات
+  if (!cfg.supabaseUrl || !cfg.supabaseAnonKey) {
+    show(
+      'خطأ: لم يتم العثور على إعدادات Supabase في config.js',
+      'error'
     );
     return;
   }
 
-  if (!cfg.supabaseAnonKey) {
-    toast(
-      'خطأ: supabaseAnonKey غير موجود في config.js',
-      true
-    );
-    return;
-  }
-
+  // فحص مكتبة Supabase
   if (!window.supabase) {
-    toast(
+    show(
       'خطأ: مكتبة Supabase لم يتم تحميلها.',
-      true
+      'error'
     );
     return;
   }
 
-  if (!client) {
-    toast(
-      'تعذر إنشاء اتصال Supabase.',
-      true
-    );
-    return;
+  const supabase = window.supabase.createClient(
+    cfg.supabaseUrl,
+    cfg.supabaseAnonKey
+  );
+
+  const loginForm = document.getElementById('loginForm');
+  const signupForm = document.getElementById('signupForm');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const userInfo = document.getElementById('userInfo');
+
+  function updateUI(user) {
+    if (user) {
+      if (userInfo) {
+        userInfo.innerHTML =
+          '✅ تم تسجيل الدخول<br>' +
+          'البريد: ' +
+          user.email;
+      }
+
+      if (loginForm) {
+        loginForm.classList.add('hidden');
+      }
+
+      if (signupForm) {
+        signupForm.classList.add('hidden');
+      }
+
+      if (logoutBtn) {
+        logoutBtn.classList.remove('hidden');
+      }
+
+      return;
+    }
+
+    if (userInfo) {
+      userInfo.textContent = 'لم يتم تسجيل الدخول';
+    }
+
+    if (loginForm) {
+      loginForm.classList.remove('hidden');
+    }
+
+    if (signupForm) {
+      signupForm.classList.remove('hidden');
+    }
+
+    if (logoutBtn) {
+      logoutBtn.classList.add('hidden');
+    }
   }
 
-  console.log('SOKA: Supabase متصل');
+  // التحقق من الجلسة الحالية
+  async function checkSession() {
+    try {
+      const {
+        data,
+        error
+      } = await supabase.auth.getSession();
 
-  // ---------------------------------------------
+      if (error) {
+        console.error(error);
+        show(
+          'خطأ في قراءة الجلسة: ' + error.message,
+          'error'
+        );
+        return;
+      }
+
+      updateUI(data.session?.user || null);
+
+    } catch (error) {
+      console.error(error);
+
+      show(
+        'خطأ غير متوقع: ' + error.message,
+        'error'
+      );
+    }
+  }
+
   // تسجيل الدخول
-  // ---------------------------------------------
-
-  async function loginUser(event) {
+  loginForm?.addEventListener('submit', async (event) => {
     event.preventDefault();
 
-    console.log('SOKA: محاولة تسجيل الدخول');
+    show('جاري تسجيل الدخول…');
 
     const email =
-      $('#email')?.value.trim();
+      document.getElementById('email')?.value.trim();
 
     const password =
-      $('#password')?.value;
+      document.getElementById('password')?.value;
 
-    if (!email) {
-      toast(
-        'أدخل البريد الإلكتروني.',
-        true
+    if (!email || !password) {
+      show(
+        'أدخل البريد الإلكتروني وكلمة المرور.',
+        'error'
       );
       return;
     }
-
-    if (!password) {
-      toast(
-        'أدخل كلمة المرور.',
-        true
-      );
-      return;
-    }
-
-    toast('جاري تسجيل الدخول...');
 
     try {
       const {
         data,
         error
-      } =
-        await client.auth.signInWithPassword({
-          email,
-          password
-        });
+      } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
 
-      console.log(
-        'Login result:',
-        data,
-        error
-      );
+      console.log('LOGIN RESULT:', data, error);
 
       if (error) {
-        toast(
-          'فشل تسجيل الدخول: ' +
+        show(
+          '❌ فشل تسجيل الدخول: ' +
           error.message,
-          true
+          'error'
         );
         return;
       }
 
-      if (!data?.user) {
-        toast(
-          'لم يتم العثور على المستخدم.',
-          true
+      if (!data.user) {
+        show(
+          '❌ لم يتم العثور على المستخدم بعد تسجيل الدخول.',
+          'error'
         );
         return;
       }
 
-      toast(
-        'تم تسجيل الدخول بنجاح.'
-      );
+      updateUI(data.user);
 
-      await checkAdmin(
-        data.user
+      show(
+        '✅ تم تسجيل الدخول بنجاح.',
+        'success'
       );
-
-      setTimeout(() => {
-        location.hash = '#home';
-      }, 500);
 
     } catch (error) {
       console.error(error);
 
-      toast(
-        'حدث خطأ أثناء تسجيل الدخول: ' +
-        (error.message || error),
-        true
+      show(
+        '❌ خطأ: ' + error.message,
+        'error'
       );
     }
-  }
+  });
 
-  // ---------------------------------------------
-  // فحص المدير
-  // ---------------------------------------------
+  // إنشاء حساب
+  signupForm?.addEventListener('submit', async (event) => {
+    event.preventDefault();
 
-  async function checkAdmin(user) {
+    show('جاري إنشاء الحساب…');
 
-    console.log(
-      'SOKA: فحص صلاحية المستخدم',
-      user.id
-    );
+    const name =
+      document.getElementById('signupName')?.value.trim();
+
+    const email =
+      document.getElementById('signupEmail')?.value.trim();
+
+    const password =
+      document.getElementById('signupPassword')?.value;
+
+    if (!name || !email || !password) {
+      show(
+        'املأ جميع الحقول.',
+        'error'
+      );
+      return;
+    }
+
+    if (password.length < 6) {
+      show(
+        'كلمة المرور يجب أن تكون 6 أحرف على الأقل.',
+        'error'
+      );
+      return;
+    }
 
     try {
-
       const {
         data,
         error
-      } =
-        await client
-          .from('profiles')
-          .select('role')
-          .eq('id', user.id)
-          .maybeSingle();
-
-      console.log(
-        'Profile:',
-        data,
-        error
-      );
-
-      if (error) {
-        toast(
-          'تم تسجيل الدخول لكن تعذر قراءة صلاحية المدير: ' +
-          error.message,
-          true
-        );
-        return;
-      }
-
-      if (data?.role === 'admin') {
-
-        console.log(
-          'SOKA: المستخدم Admin'
-        );
-
-        $('#adminNav')
-          ?.classList.remove(
-            'hidden'
-          );
-
-        toast(
-          'تم التعرف على حساب المدير 👑'
-        );
-
-      } else {
-
-        console.log(
-          'SOKA: المستخدم ليس Admin',
-          data
-        );
-
-        $('#adminNav')
-          ?.classList.add(
-            'hidden'
-          );
-      }
-
-    } catch (error) {
-
-      console.error(
-        'Admin check error:',
-        error
-      );
-
-      toast(
-        'خطأ في فحص صلاحية المدير.',
-        true
-      );
-    }
-  }
-
-  // ---------------------------------------------
-  // جلسة المستخدم الحالية
-  // ---------------------------------------------
-
-  async function checkSession() {
-
-    console.log(
-      'SOKA: فحص الجلسة'
-    );
-
-    try {
-
-      const {
-        data,
-        error
-      } =
-        await client.auth.getSession();
-
-      console.log(
-        'Session:',
-        data,
-        error
-      );
-
-      if (error) {
-        toast(
-          'خطأ في الجلسة: ' +
-          error.message,
-          true
-        );
-        return;
-      }
-
-      if (data?.session?.user) {
-
-        console.log(
-          'SOKA: المستخدم مسجل',
-          data.session.user
-        );
-
-        $('#authNav').textContent =
-          'حسابي';
-
-        $('#logoutBtn')
-          ?.classList.remove(
-            'hidden'
-          );
-
-        await checkAdmin(
-          data.session.user
-        );
-
-      } else {
-
-        console.log(
-          'SOKA: لا توجد جلسة'
-        );
-      }
-
-      client.auth.onAuthStateChange(
-        async (_event, session) => {
-
-          console.log(
-            'Auth event:',
-            _event,
-            session
-          );
-
-          if (session?.user) {
-
-            $('#logoutBtn')
-              ?.classList.remove(
-                'hidden'
-              );
-
-            await checkAdmin(
-              session.user
-            );
-
-          } else {
-
-            $('#logoutBtn')
-              ?.classList.add(
-                'hidden'
-              );
-
-            $('#adminNav')
-              ?.classList.add(
-                'hidden'
-              );
+      } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: name
           }
         }
-      );
+      });
 
-    } catch (error) {
-
-      console.error(error);
-
-      toast(
-        'تعذر فحص تسجيل الدخول.',
-        true
-      );
-    }
-  }
-
-  // ---------------------------------------------
-  // تسجيل الخروج
-  // ---------------------------------------------
-
-  async function logoutUser() {
-
-    try {
-
-      const {
-        error
-      } =
-        await client.auth.signOut();
+      console.log('SIGNUP RESULT:', data, error);
 
       if (error) {
-        toast(
+        show(
+          '❌ فشل إنشاء الحساب: ' +
           error.message,
-          true
+          'error'
         );
         return;
       }
 
-      toast(
-        'تم تسجيل الخروج.'
-      );
+      if (data.session) {
+        updateUI(data.user);
 
-      $('#logoutBtn')
-        ?.classList.add(
-          'hidden'
+        show(
+          '✅ تم إنشاء الحساب وتسجيل الدخول.',
+          'success'
         );
-
-      $('#adminNav')
-        ?.classList.add(
-          'hidden'
+      } else {
+        show(
+          '✅ تم إنشاء الحساب. تحقق من بريدك الإلكتروني لتأكيد الحساب ثم سجّل الدخول.',
+          'success'
         );
+      }
 
     } catch (error) {
+      console.error(error);
 
-      toast(
-        error.message ||
-        'حدث خطأ.',
-        true
+      show(
+        '❌ خطأ: ' + error.message,
+        'error'
       );
     }
-  }
+  });
 
-  // ---------------------------------------------
-  // الأحداث
-  // ---------------------------------------------
+  // تسجيل الخروج
+  logoutBtn?.addEventListener('click', async () => {
+    try {
+      const {
+        error
+      } = await supabase.auth.signOut();
 
-  const loginForm =
-    $('#loginForm');
+      if (error) {
+        show(
+          '❌ فشل تسجيل الخروج: ' +
+          error.message,
+          'error'
+        );
+        return;
+      }
 
-  if (!loginForm) {
+      updateUI(null);
 
-    toast(
-      'خطأ: loginForm غير موجود في index.html',
-      true
-    );
+      show(
+        'تم تسجيل الخروج.',
+        'success'
+      );
 
-  } else {
+    } catch (error) {
+      show(
+        '❌ خطأ: ' + error.message,
+        'error'
+      );
+    }
+  });
 
-    loginForm.addEventListener(
-      'submit',
-      loginUser
-    );
+  // مراقبة تغير الجلسة
+  supabase.auth.onAuthStateChange(
+    (_event, session) => {
+      console.log(
+        'AUTH EVENT:',
+        _event,
+        session
+      );
 
-    console.log(
-      'SOKA: loginForm جاهز'
-    );
-  }
-
-  $('#logoutBtn')
-    ?.addEventListener(
-      'click',
-      logoutUser
-    );
-
-  // ---------------------------------------------
-  // بدء التطبيق
-  // ---------------------------------------------
+      updateUI(
+        session?.user || null
+      );
+    }
+  );
 
   checkSession();
 
-  console.log(
-    'SOKA: تم تشغيل التطبيق بنجاح'
-  );
-
-})();console.log('SOKA app.js loaded');
-
-window.addEventListener('error', function (event) {
-  console.error('SOKA ERROR:', event.error || event.message);
-
-  const toastEl = document.querySelector('#toast');
-
-  if (toastEl) {
-    toastEl.textContent =
-      'حدث خطأ في الموقع: ' +
-      (event.message || 'خطأ غير معروف');
-
-    toastEl.className = 'toast show error';
-  }
-});
-
-window.addEventListener('unhandledrejection', function (event) {
-  console.error('SOKA PROMISE ERROR:', event.reason);
-
-  const toastEl = document.querySelector('#toast');
-
-  if (toastEl) {
-    toastEl.textContent =
-      'حدث خطأ: ' +
-      (event.reason?.message || event.reason || 'خطأ غير معروف');
-
-    toastEl.className = 'toast show error';
-  }
-});
-
-start();async function loginUser(event) {
-	async function loginUser(event) {
-  event.preventDefault();
-
-  console.log('LOGIN BUTTON CLICKED');
-
-  if (!client) {
-    console.error('Supabase client is not initialized');
-
-    toast(
-      'خطأ: Supabase غير متصل. تحقق من config.js',
-      true
-    );
-
-    return;
-  }
-
-  const email =
-    $('#email')?.value.trim();
-
-  const password =
-    $('#password')?.value;
-
-  console.log('Email:', email);
-  console.log('Password entered:', !!password);
-
-  if (!email || !password) {
-    toast(
-      'أدخل البريد الإلكتروني وكلمة المرور.',
-      true
-    );
-
-    return;
-  }
-
-  toast('جاري تسجيل الدخول...');
-
-  try {
-
-    const result =
-      await client.auth.signInWithPassword({
-        email: email,
-        password: password
-      });
-
-    console.log('LOGIN RESULT:', result);
-
-    const {
-      data,
-      error
-    } = result;
-
-    if (error) {
-
-      console.error(
-        'SUPABASE LOGIN ERROR:',
-        error
-      );
-
-      toast(
-        'فشل تسجيل الدخول: ' +
-        error.message,
-        true
-      );
-
-      return;
-    }
-
-    if (!data?.user) {
-
-      toast(
-        'لم يتم العثور على المستخدم.',
-        true
-      );
-
-      return;
-    }
-
-    console.log(
-      'LOGIN SUCCESS:',
-      data.user
-    );
-
-    await setUser(
-      data.user
-    );
-
-    toast(
-      'تم تسجيل الدخول بنجاح ✅'
-    );
-
-    setTimeout(() => {
-      location.hash = '#home';
-    }, 500);
-
-  } catch (error) {
-
-    console.error(
-      'LOGIN EXCEPTION:',
-      error
-    );
-
-    toast(
-      'حدث خطأ أثناء تسجيل الدخول: ' +
-      (error?.message || error),
-      true
-    );
-  }
-}
+})();
