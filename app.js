@@ -1,17 +1,440 @@
-const demoMovies=[
- {title:"فيلم تجريبي 1",type:"فيلم",image:"https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=700&q=80"},
- {title:"فيلم تجريبي 2",type:"فيلم",image:"https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=700&q=80"},
- {title:"فيلم تجريبي 3",type:"فيلم",image:"https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?auto=format&fit=crop&w=700&q=80"}
-];
-const demoSeries=[
- {title:"ورود وذنوب",type:"مسلسل",image:"https://images.unsplash.com/photo-1524985069026-dd778a71c7b4?auto=format&fit=crop&w=700&q=80"},
- {title:"مسلسل تجريبي 2",type:"مسلسل",image:"https://images.unsplash.com/photo-1594909122845-11baa439b7bf?auto=format&fit=crop&w=700&q=80"},
- {title:"مسلسل تجريبي 3",type:"مسلسل",image:"https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=700&q=80"}
-];
-let content=[...demoMovies,...demoSeries];
-function card(x){return `<article class="card"><img class="poster" src="${x.image}" alt=""><div class="card-body"><h3>${x.title}</h3><div class="meta">${x.type} • SOKA</div><button onclick="watch('${x.title}')">▶ مشاهدة</button></div></article>`}
-function render(){movieGrid.innerHTML=content.filter(x=>x.type==="فيلم").map(card).join("");seriesGrid.innerHTML=content.filter(x=>x.type==="مسلسل").map(card).join("")}
-function searchContent(){let q=searchInput.value.trim();searchGrid.innerHTML=q?content.filter(x=>x.title.includes(q)).map(card).join(""):""}
-function watch(t){location.hash="watch";watchTitle.textContent=t}
-function addItem(){let title=document.getElementById("title").value.trim(),type=document.getElementById("type").value==="movie"?"فيلم":"مسلسل",image=document.getElementById("image").value.trim()||"https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=700&q=80";if(!title){alert("اكتب اسم المحتوى");return}content.unshift({title,type,image});render();alert("تمت الإضافة محليًا في هذه النسخة التجريبية");}
-render();
+(() => {
+  'use strict';
+
+  console.log('SOKA app.js بدأ التشغيل');
+
+  const cfg = window.SOKA_CONFIG || {};
+
+  const client =
+    window.supabase &&
+    cfg.supabaseUrl &&
+    cfg.supabaseAnonKey
+      ? window.supabase.createClient(
+          cfg.supabaseUrl,
+          cfg.supabaseAnonKey
+        )
+      : null;
+
+  const $ = (selector) =>
+    document.querySelector(selector);
+
+  function toast(message, error = false) {
+    const el = $('#toast');
+
+    if (el) {
+      el.textContent = message;
+      el.className =
+        'toast show ' +
+        (error ? 'error' : '');
+
+      setTimeout(() => {
+        el.className = 'toast';
+      }, 5000);
+    }
+
+    console.log(
+      error ? 'SOKA ERROR:' : 'SOKA:',
+      message
+    );
+  }
+
+  // ---------------------------------------------
+  // فحص Supabase
+  // ---------------------------------------------
+
+  if (!cfg.supabaseUrl) {
+    toast(
+      'خطأ: supabaseUrl غير موجود في config.js',
+      true
+    );
+    return;
+  }
+
+  if (!cfg.supabaseAnonKey) {
+    toast(
+      'خطأ: supabaseAnonKey غير موجود في config.js',
+      true
+    );
+    return;
+  }
+
+  if (!window.supabase) {
+    toast(
+      'خطأ: مكتبة Supabase لم يتم تحميلها.',
+      true
+    );
+    return;
+  }
+
+  if (!client) {
+    toast(
+      'تعذر إنشاء اتصال Supabase.',
+      true
+    );
+    return;
+  }
+
+  console.log('SOKA: Supabase متصل');
+
+  // ---------------------------------------------
+  // تسجيل الدخول
+  // ---------------------------------------------
+
+  async function loginUser(event) {
+    event.preventDefault();
+
+    console.log('SOKA: محاولة تسجيل الدخول');
+
+    const email =
+      $('#email')?.value.trim();
+
+    const password =
+      $('#password')?.value;
+
+    if (!email) {
+      toast(
+        'أدخل البريد الإلكتروني.',
+        true
+      );
+      return;
+    }
+
+    if (!password) {
+      toast(
+        'أدخل كلمة المرور.',
+        true
+      );
+      return;
+    }
+
+    toast('جاري تسجيل الدخول...');
+
+    try {
+      const {
+        data,
+        error
+      } =
+        await client.auth.signInWithPassword({
+          email,
+          password
+        });
+
+      console.log(
+        'Login result:',
+        data,
+        error
+      );
+
+      if (error) {
+        toast(
+          'فشل تسجيل الدخول: ' +
+          error.message,
+          true
+        );
+        return;
+      }
+
+      if (!data?.user) {
+        toast(
+          'لم يتم العثور على المستخدم.',
+          true
+        );
+        return;
+      }
+
+      toast(
+        'تم تسجيل الدخول بنجاح.'
+      );
+
+      await checkAdmin(
+        data.user
+      );
+
+      setTimeout(() => {
+        location.hash = '#home';
+      }, 500);
+
+    } catch (error) {
+      console.error(error);
+
+      toast(
+        'حدث خطأ أثناء تسجيل الدخول: ' +
+        (error.message || error),
+        true
+      );
+    }
+  }
+
+  // ---------------------------------------------
+  // فحص المدير
+  // ---------------------------------------------
+
+  async function checkAdmin(user) {
+
+    console.log(
+      'SOKA: فحص صلاحية المستخدم',
+      user.id
+    );
+
+    try {
+
+      const {
+        data,
+        error
+      } =
+        await client
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .maybeSingle();
+
+      console.log(
+        'Profile:',
+        data,
+        error
+      );
+
+      if (error) {
+        toast(
+          'تم تسجيل الدخول لكن تعذر قراءة صلاحية المدير: ' +
+          error.message,
+          true
+        );
+        return;
+      }
+
+      if (data?.role === 'admin') {
+
+        console.log(
+          'SOKA: المستخدم Admin'
+        );
+
+        $('#adminNav')
+          ?.classList.remove(
+            'hidden'
+          );
+
+        toast(
+          'تم التعرف على حساب المدير 👑'
+        );
+
+      } else {
+
+        console.log(
+          'SOKA: المستخدم ليس Admin',
+          data
+        );
+
+        $('#adminNav')
+          ?.classList.add(
+            'hidden'
+          );
+      }
+
+    } catch (error) {
+
+      console.error(
+        'Admin check error:',
+        error
+      );
+
+      toast(
+        'خطأ في فحص صلاحية المدير.',
+        true
+      );
+    }
+  }
+
+  // ---------------------------------------------
+  // جلسة المستخدم الحالية
+  // ---------------------------------------------
+
+  async function checkSession() {
+
+    console.log(
+      'SOKA: فحص الجلسة'
+    );
+
+    try {
+
+      const {
+        data,
+        error
+      } =
+        await client.auth.getSession();
+
+      console.log(
+        'Session:',
+        data,
+        error
+      );
+
+      if (error) {
+        toast(
+          'خطأ في الجلسة: ' +
+          error.message,
+          true
+        );
+        return;
+      }
+
+      if (data?.session?.user) {
+
+        console.log(
+          'SOKA: المستخدم مسجل',
+          data.session.user
+        );
+
+        $('#authNav').textContent =
+          'حسابي';
+
+        $('#logoutBtn')
+          ?.classList.remove(
+            'hidden'
+          );
+
+        await checkAdmin(
+          data.session.user
+        );
+
+      } else {
+
+        console.log(
+          'SOKA: لا توجد جلسة'
+        );
+      }
+
+      client.auth.onAuthStateChange(
+        async (_event, session) => {
+
+          console.log(
+            'Auth event:',
+            _event,
+            session
+          );
+
+          if (session?.user) {
+
+            $('#logoutBtn')
+              ?.classList.remove(
+                'hidden'
+              );
+
+            await checkAdmin(
+              session.user
+            );
+
+          } else {
+
+            $('#logoutBtn')
+              ?.classList.add(
+                'hidden'
+              );
+
+            $('#adminNav')
+              ?.classList.add(
+                'hidden'
+              );
+          }
+        }
+      );
+
+    } catch (error) {
+
+      console.error(error);
+
+      toast(
+        'تعذر فحص تسجيل الدخول.',
+        true
+      );
+    }
+  }
+
+  // ---------------------------------------------
+  // تسجيل الخروج
+  // ---------------------------------------------
+
+  async function logoutUser() {
+
+    try {
+
+      const {
+        error
+      } =
+        await client.auth.signOut();
+
+      if (error) {
+        toast(
+          error.message,
+          true
+        );
+        return;
+      }
+
+      toast(
+        'تم تسجيل الخروج.'
+      );
+
+      $('#logoutBtn')
+        ?.classList.add(
+          'hidden'
+        );
+
+      $('#adminNav')
+        ?.classList.add(
+          'hidden'
+        );
+
+    } catch (error) {
+
+      toast(
+        error.message ||
+        'حدث خطأ.',
+        true
+      );
+    }
+  }
+
+  // ---------------------------------------------
+  // الأحداث
+  // ---------------------------------------------
+
+  const loginForm =
+    $('#loginForm');
+
+  if (!loginForm) {
+
+    toast(
+      'خطأ: loginForm غير موجود في index.html',
+      true
+    );
+
+  } else {
+
+    loginForm.addEventListener(
+      'submit',
+      loginUser
+    );
+
+    console.log(
+      'SOKA: loginForm جاهز'
+    );
+  }
+
+  $('#logoutBtn')
+    ?.addEventListener(
+      'click',
+      logoutUser
+    );
+
+  // ---------------------------------------------
+  // بدء التطبيق
+  // ---------------------------------------------
+
+  checkSession();
+
+  console.log(
+    'SOKA: تم تشغيل التطبيق بنجاح'
+  );
+
+})();
