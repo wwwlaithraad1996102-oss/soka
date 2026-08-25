@@ -1,11 +1,6 @@
 (() => {
   'use strict';
 
-  // =========================================================
-  // SOKA - Main App
-  // Supabase + TVmaze Import
-  // =========================================================
-
   const cfg = window.SOKA_CONFIG || {};
 
   const validConfig =
@@ -21,10 +16,6 @@
       )
     : null;
 
-  // =========================================================
-  // State
-  // =========================================================
-
   let currentUser = null;
   let isAdmin = false;
 
@@ -33,16 +24,13 @@
   let seasons = [];
   let episodes = [];
 
-  // =========================================================
-  // Helpers
-  // =========================================================
-
-  const $ = (selector) => document.querySelector(selector);
+  const $ = (selector) =>
+    document.querySelector(selector);
 
   const esc = (value = '') =>
     String(value).replace(
       /[&<>'"]/g,
-      (c) =>
+      c =>
         ({
           '&': '&amp;',
           '<': '&lt;',
@@ -52,28 +40,19 @@
         })[c]
     );
 
-  const toast = (message, error = false) => {
+  function toast(message, error = false) {
     const el = $('#toast');
 
     if (!el) return;
 
     el.textContent = message;
-    el.className = 'toast show ' + (error ? 'error' : '');
+    el.className =
+      'toast show ' + (error ? 'error' : '');
 
     setTimeout(() => {
       el.className = 'toast';
     }, 3500);
-  };
-
-  const fmt = (date) => {
-    if (!date) return '';
-
-    try {
-      return new Date(date).toLocaleDateString('ar-IQ');
-    } catch {
-      return '';
-    }
-  };
+  }
 
   function configError() {
     toast(
@@ -82,9 +61,27 @@
     );
   }
 
-  // =========================================================
-  // Card
-  // =========================================================
+  /* =========================
+     التنقل بين الصفحات
+  ========================= */
+
+  function showSection(id) {
+    document
+      .querySelectorAll('main > section')
+      .forEach(section => {
+        section.classList.add('hidden');
+      });
+
+    const section = document.getElementById(id);
+
+    if (section) {
+      section.classList.remove('hidden');
+    }
+  }
+
+  /* =========================
+     بطاقات المحتوى
+  ========================= */
 
   function card(item, type) {
     const title = esc(item.title);
@@ -109,38 +106,55 @@
 
           <p>
             ${esc(item.year || '')}
-            ${item.genre ? ' • ' + esc(item.genre) : ''}
+            ${
+              item.genre
+                ? ' • ' + esc(item.genre)
+                : ''
+            }
           </p>
         </div>
       </article>
     `;
   }
 
-  // =========================================================
-  // Load public content
-  // =========================================================
+  /* =========================
+     تحميل الأفلام والمسلسلات
+  ========================= */
 
   async function loadContent() {
-    if (!client) return;
+    if (!client) {
+      configError();
+      return;
+    }
 
-    const [moviesResult, seriesResult] = await Promise.all([
+    const [
+      moviesResponse,
+      seriesResponse
+    ] = await Promise.all([
       client
         .from('movies')
         .select('*')
         .eq('is_published', true)
-        .order('created_at', { ascending: false }),
+        .order('created_at', {
+          ascending: false
+        }),
 
       client
         .from('series')
         .select('*')
         .eq('is_published', true)
-        .order('created_at', { ascending: false })
+        .order('created_at', {
+          ascending: false
+        })
     ]);
 
-    if (moviesResult.error || seriesResult.error) {
+    if (
+      moviesResponse.error ||
+      seriesResponse.error
+    ) {
       console.error(
-        moviesResult.error,
-        seriesResult.error
+        moviesResponse.error,
+        seriesResponse.error
       );
 
       toast(
@@ -151,28 +165,44 @@
       return;
     }
 
-    movies = moviesResult.data || [];
-    series = seriesResult.data || [];
+    movies = moviesResponse.data || [];
+    series = seriesResponse.data || [];
 
     const movieGrid = $('#movieGrid');
     const seriesGrid = $('#seriesGrid');
 
     if (movieGrid) {
       movieGrid.innerHTML = movies.length
-        ? movies.map((movie) => card(movie, 'movie')).join('')
-        : '<div class="empty">لا توجد أفلام منشورة بعد.</div>';
+        ? movies
+            .map(movie =>
+              card(movie, 'movie')
+            )
+            .join('')
+        : `
+          <div class="empty">
+            لا توجد أفلام منشورة بعد.
+          </div>
+        `;
     }
 
     if (seriesGrid) {
       seriesGrid.innerHTML = series.length
-        ? series.map((item) => card(item, 'series')).join('')
-        : '<div class="empty">لا توجد مسلسلات منشورة بعد.</div>';
+        ? series
+            .map(item =>
+              card(item, 'series')
+            )
+            .join('')
+        : `
+          <div class="empty">
+            لا توجد مسلسلات منشورة بعد.
+          </div>
+        `;
     }
   }
 
-  // =========================================================
-  // Authentication
-  // =========================================================
+  /* =========================
+     تسجيل الدخول
+  ========================= */
 
   async function checkSession() {
     if (!client) return;
@@ -181,11 +211,15 @@
       data: { session }
     } = await client.auth.getSession();
 
-    await setUser(session?.user || null);
+    await setUser(
+      session?.user || null
+    );
 
     client.auth.onAuthStateChange(
       async (_event, session) => {
-        await setUser(session?.user || null);
+        await setUser(
+          session?.user || null
+        );
       }
     );
   }
@@ -195,27 +229,23 @@
     isAdmin = false;
 
     const authNav = $('#authNav');
-    const logout = $('#logoutBtn');
+    const logoutBtn = $('#logoutBtn');
     const adminNav = $('#adminNav');
-    const admin = $('#admin');
 
     if (!user) {
       if (authNav) {
-        authNav.classList.remove('hidden');
-        authNav.textContent = 'تسجيل الدخول';
+        authNav.textContent =
+          'تسجيل الدخول';
+
         authNav.href = '#login';
       }
 
-      if (logout) {
-        logout.classList.add('hidden');
+      if (logoutBtn) {
+        logoutBtn.classList.add('hidden');
       }
 
       if (adminNav) {
         adminNav.classList.add('hidden');
-      }
-
-      if (admin) {
-        admin.classList.add('hidden');
       }
 
       return;
@@ -226,47 +256,50 @@
       authNav.href = '#login';
     }
 
-    if (logout) {
-      logout.classList.remove('hidden');
+    if (logoutBtn) {
+      logoutBtn.classList.remove('hidden');
     }
 
-    // -------------------------------------------------------
-    // Check admin role
-    // -------------------------------------------------------
-
-    const { data, error } = await client
+    const {
+      data,
+      error
+    } = await client
       .from('profiles')
       .select('role')
       .eq('id', user.id)
       .maybeSingle();
 
-    if (!error && data?.role === 'admin') {
+    if (
+      !error &&
+      data &&
+      data.role === 'admin'
+    ) {
       isAdmin = true;
 
       if (adminNav) {
-        adminNav.classList.remove('hidden');
+        adminNav.classList.remove(
+          'hidden'
+        );
       }
     } else {
       if (adminNav) {
-        adminNav.classList.add('hidden');
+        adminNav.classList.add(
+          'hidden'
+        );
       }
-    }
-
-    if (location.hash === '#admin' && isAdmin) {
-      await renderAdmin();
     }
   }
 
-  // =========================================================
-  // Login
-  // =========================================================
+  /* =========================
+     Login
+  ========================= */
 
   const loginForm = $('#loginForm');
 
   if (loginForm) {
     loginForm.addEventListener(
       'submit',
-      async (event) => {
+      async event => {
         event.preventDefault();
 
         if (!client) {
@@ -274,45 +307,51 @@
           return;
         }
 
-        const email = $('#email')?.value.trim();
-        const password = $('#password')?.value;
+        const email =
+          $('#email').value.trim();
 
-        if (!email || !password) {
-          toast(
-            'أدخل البريد الإلكتروني وكلمة المرور.',
-            true
+        const password =
+          $('#password').value;
+
+        const {
+          error
+        } =
+          await client.auth.signInWithPassword(
+            {
+              email,
+              password
+            }
           );
-          return;
-        }
-
-        const { error } =
-          await client.auth.signInWithPassword({
-            email,
-            password
-          });
 
         if (error) {
-          toast(error.message, true);
+          toast(
+            error.message,
+            true
+          );
+
           return;
         }
 
-        toast('تم تسجيل الدخول بنجاح.');
+        toast(
+          'تم تسجيل الدخول بنجاح.'
+        );
 
         location.hash = '#home';
       }
     );
   }
 
-  // =========================================================
-  // Signup
-  // =========================================================
+  /* =========================
+     Signup
+  ========================= */
 
-  const signupForm = $('#signupForm');
+  const signupForm =
+    $('#signupForm');
 
   if (signupForm) {
     signupForm.addEventListener(
       'submit',
-      async (event) => {
+      async event => {
         event.preventDefault();
 
         if (!client) {
@@ -321,23 +360,22 @@
         }
 
         const full_name =
-          $('#signupName')?.value.trim();
+          $('#signupName')
+            .value
+            .trim();
 
         const email =
-          $('#signupEmail')?.value.trim();
+          $('#signupEmail')
+            .value
+            .trim();
 
         const password =
-          $('#signupPassword')?.value;
+          $('#signupPassword')
+            .value;
 
-        if (!full_name || !email || !password) {
-          toast(
-            'أكمل جميع بيانات التسجيل.',
-            true
-          );
-          return;
-        }
-
-        const { error } =
+        const {
+          error
+        } =
           await client.auth.signUp({
             email,
             password,
@@ -349,7 +387,11 @@
           });
 
         if (error) {
-          toast(error.message, true);
+          toast(
+            error.message,
+            true
+          );
+
           return;
         }
 
@@ -360,11 +402,12 @@
     );
   }
 
-  // =========================================================
-  // Logout
-  // =========================================================
+  /* =========================
+     Logout
+  ========================= */
 
-  const logoutBtn = $('#logoutBtn');
+  const logoutBtn =
+    $('#logoutBtn');
 
   if (logoutBtn) {
     logoutBtn.addEventListener(
@@ -374,29 +417,37 @@
           await client.auth.signOut();
         }
 
-        location.hash = '#home';
+        currentUser = null;
+        isAdmin = false;
 
-        toast('تم تسجيل الخروج.');
+        location.hash =
+          '#home';
+
+        toast(
+          'تم تسجيل الخروج.'
+        );
       }
     );
   }
 
-  // =========================================================
-  // Search
-  // =========================================================
+  /* =========================
+     البحث
+  ========================= */
 
-  const searchInput = $('#searchInput');
+  const searchInput =
+    $('#searchInput');
 
   if (searchInput) {
     searchInput.addEventListener(
       'input',
-      async (event) => {
+      event => {
         const q =
           event.target.value
             .trim()
             .toLowerCase();
 
-        const searchGrid = $('#searchGrid');
+        const searchGrid =
+          $('#searchGrid');
 
         if (!searchGrid) return;
 
@@ -406,61 +457,66 @@
         }
 
         const all = [
-          ...movies.map((item) => ({
+          ...movies.map(item => ({
             ...item,
             _type: 'movie'
           })),
 
-          ...series.map((item) => ({
+          ...series.map(item => ({
             ...item,
             _type: 'series'
           }))
         ];
 
-        const result = all.filter((item) =>
-          String(item.title || '')
-            .toLowerCase()
-            .includes(q)
-        );
+        const results =
+          all.filter(item =>
+            String(
+              item.title || ''
+            )
+              .toLowerCase()
+              .includes(q)
+          );
 
-        searchGrid.innerHTML = result.length
-          ? result
-              .map((item) =>
-                card(item, item._type)
-              )
-              .join('')
-          : '<div class="empty">لا توجد نتائج.</div>';
+        searchGrid.innerHTML =
+          results.length
+            ? results
+                .map(item =>
+                  card(
+                    item,
+                    item._type
+                  )
+                )
+                .join('')
+            : `
+              <div class="empty">
+                لا توجد نتائج.
+              </div>
+            `;
       }
     );
   }
 
-  // =========================================================
-  // Movie / Series Details
-  // =========================================================
+  /* =========================
+     تفاصيل الفيلم
+  ========================= */
 
-  async function renderDetail(type, id) {
-    if (!client) {
-      configError();
-      return;
-    }
-
-    const table =
-      type === 'movie'
-        ? 'movies'
-        : 'series';
-
-    const { data: item, error } =
+  async function renderMovieDetail(id) {
+    const {
+      data: item,
+      error
+    } =
       await client
-        .from(table)
+        .from('movies')
         .select('*')
         .eq('id', id)
         .single();
 
     if (error || !item) {
       toast(
-        'تعذر العثور على المحتوى.',
+        'الفيلم غير موجود.',
         true
       );
+
       return;
     }
 
@@ -468,84 +524,105 @@
       item.poster_url ||
       'https://placehold.co/600x900/111116/eeeeee?text=SOKA';
 
-    const detailContent =
-      $('#detailContent');
+    $('#detailContent').innerHTML = `
+      <div class="detail-card">
 
-    if (!detailContent) return;
+        <img
+          src="${esc(poster)}"
+          alt="${esc(item.title)}"
+        >
 
-    // -------------------------------------------------------
-    // Movie
-    // -------------------------------------------------------
+        <div>
 
-    if (type === 'movie') {
-      detailContent.innerHTML = `
-        <div class="detail-card">
+          <span class="badge">
+            فيلم
+          </span>
 
-          <img
-            src="${esc(poster)}"
-            alt="${esc(item.title)}"
+          <h1>
+            ${esc(item.title)}
+          </h1>
+
+          <p>
+            ${esc(
+              item.description ||
+              'لا يوجد وصف.'
+            )}
+          </p>
+
+          <p>
+            ${esc(item.year || '')}
+
+            ${
+              item.country
+                ? ' • ' +
+                  esc(item.country)
+                : ''
+            }
+
+            ${
+              item.genre
+                ? ' • ' +
+                  esc(item.genre)
+                : ''
+            }
+          </p>
+
+          <button
+            class="btn"
+            onclick="location.hash='watch:movie:${item.id}'"
           >
-
-          <div>
-            <span class="badge">
-              فيلم
-            </span>
-
-            <h1>
-              ${esc(item.title)}
-            </h1>
-
-            <p>
-              ${esc(
-                item.description ||
-                'لا يوجد وصف.'
-              )}
-            </p>
-
-            <p>
-              ${esc(item.year || '')}
-
-              ${
-                item.country
-                  ? ' • ' +
-                    esc(item.country)
-                  : ''
-              }
-
-              ${
-                item.genre
-                  ? ' • ' +
-                    esc(item.genre)
-                  : ''
-              }
-            </p>
-
-            <button
-              class="btn"
-              onclick="location.hash='watch:movie:${item.id}'"
-            >
-              ▶ مشاهدة
-            </button>
-          </div>
+            ▶ مشاهدة
+          </button>
 
         </div>
-      `;
+
+      </div>
+    `;
+  }
+
+  /* =========================
+     تفاصيل المسلسل
+  ========================= */
+
+  async function renderSeriesDetail(id) {
+    const {
+      data: item,
+      error
+    } =
+      await client
+        .from('series')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+    if (error || !item) {
+      toast(
+        'المسلسل غير موجود.',
+        true
+      );
 
       return;
     }
 
-    // -------------------------------------------------------
-    // Series
-    // -------------------------------------------------------
-
-    const { data: ss } =
+    const {
+      data: ss
+    } =
       await client
         .from('seasons')
         .select('*')
-        .eq('series_id', id)
-        .order('season_number');
+        .eq(
+          'series_id',
+          id
+        )
+        .order(
+          'season_number'
+        );
 
-    detailContent.innerHTML = `
+    const poster =
+      item.poster_url ||
+      'https://placehold.co/600x900/111116/eeeeee?text=SOKA';
+
+    $('#detailContent').innerHTML = `
       <div class="detail-card">
 
         <img
@@ -588,117 +665,175 @@
       <div class="season-list">
 
         ${
-          (ss || [])
-            .map(
-              (season) => `
-                <div class="season">
+          ss && ss.length
+            ? ss
+                .map(
+                  season => `
+                    <div class="season">
 
-                  <h3>
-                    الموسم
-                    ${season.season_number}
-                  </h3>
+                      <h3>
+                        الموسم
+                        ${season.season_number}
+                      </h3>
 
-                  <div
-                    id="season-${season.id}"
-                    class="episode-list"
-                  >
-                    جاري تحميل الحلقات…
-                  </div>
+                      <div
+                        id="season-${season.id}"
+                        class="episode-list"
+                      >
+                        جاري التحميل…
+                      </div>
 
-                </div>
-              `
-            )
-            .join('') ||
-          `
-            <div class="empty">
-              لا توجد مواسم منشورة بعد.
-            </div>
-          `
+                    </div>
+                  `
+                )
+                .join('')
+            : `
+              <div class="empty">
+                لا توجد مواسم.
+              </div>
+            `
         }
 
       </div>
     `;
 
-    // -------------------------------------------------------
-    // Load episodes
-    // -------------------------------------------------------
-
-    for (const season of ss || []) {
-      const { data: eps } =
+    for (
+      const season of ss || []
+    ) {
+      const {
+        data: eps
+      } =
         await client
           .from('episodes')
           .select('*')
-          .eq('season_id', season.id)
-          .eq('is_published', true)
-          .order('episode_number');
+          .eq(
+            'season_id',
+            season.id
+          )
+          .eq(
+            'is_published',
+            true
+          )
+          .order(
+            'episode_number'
+          );
 
       const el =
-        $(`#season-${season.id}`);
+        $(
+          '#season-' +
+            season.id
+        );
 
       if (!el) continue;
 
       el.innerHTML =
-        (eps || [])
-          .map(
-            (ep) => `
-              <button
-                class="episode"
-                onclick="location.hash='watch:episode:${ep.id}'"
-              >
-                الحلقة
-                ${ep.episode_number}
-                —
-                ${esc(ep.title)}
-              </button>
-            `
-          )
-          .join('') ||
-        `
-          <div class="muted">
-            لا توجد حلقات منشورة.
-          </div>
-        `;
+        eps && eps.length
+          ? eps
+              .map(
+                ep => `
+                  <button
+                    class="episode"
+                    onclick="location.hash='watch:episode:${ep.id}'"
+                  >
+                    الحلقة
+                    ${ep.episode_number}
+                    —
+                    ${esc(
+                      ep.title
+                    )}
+                  </button>
+                `
+              )
+              .join('')
+          : `
+            <div class="muted">
+              لا توجد حلقات منشورة.
+            </div>
+          `;
     }
   }
 
-  // =========================================================
-  // Watch
-  // =========================================================
+  /* =========================
+     التفاصيل
+  ========================= */
 
-  async function renderWatch(kind, id) {
+  async function renderDetail(
+    type,
+    id
+  ) {
     if (!client) {
       configError();
       return;
     }
+
+    showSection('detail');
+
+    if (type === 'movie') {
+      await renderMovieDetail(
+        id
+      );
+    } else {
+      await renderSeriesDetail(
+        id
+      );
+    }
+  }
+
+  /* =========================
+     المشاهدة
+  ========================= */
+
+  async function renderWatch(
+    kind,
+    id
+  ) {
+    if (!client) {
+      configError();
+      return;
+    }
+
+    showSection('watch');
 
     let item = null;
     let title = '';
     let video = '';
 
     if (kind === 'movie') {
-      const result =
+      const {
+        data
+      } =
         await client
           .from('movies')
           .select('*')
           .eq('id', id)
           .single();
 
-      item = result.data;
-      title = item?.title;
-      video = item?.video_url;
+      item = data;
+
+      title =
+        item?.title || '';
+
+      video =
+        item?.video_url || '';
     } else {
-      const result =
+      const {
+        data
+      } =
         await client
           .from('episodes')
           .select(
-            '*,series(title)'
+            '*, series(title)'
           )
           .eq('id', id)
           .single();
 
-      item = result.data;
-      title = item?.title;
-      video = item?.video_url;
+      item = data;
+
+      title =
+        item?.title || '';
+
+      video =
+        item?.video_url || '';
     }
 
     if (!item) {
@@ -706,13 +841,9 @@
         'المحتوى غير موجود.',
         true
       );
+
       return;
     }
-
-    const watchContent =
-      $('#watchContent');
-
-    if (!watchContent) return;
 
     const player = video
       ? `
@@ -725,31 +856,31 @@
       `
       : `
         <div class="player-empty">
-          لا يوجد رابط فيديو منشور لهذه المادة.
+          لا يوجد رابط فيديو منشور.
         </div>
       `;
 
-    watchContent.innerHTML = `
+    $('#watchContent').innerHTML = `
       <div class="watch-box">
 
         <h1>
-          ${esc(title || 'المشاهدة')}
+          ${esc(title)}
         </h1>
 
         ${player}
 
         <p class="muted">
-          استخدم روابط فيديو تملك حقوق بثها
-          أو ترخيصًا لاستخدامها.
+          استخدم فقط روابط فيديو تملك
+          حقوق بثها أو ترخيصًا لاستخدامها.
         </p>
 
       </div>
     `;
   }
 
-  // =========================================================
-  // ADMIN
-  // =========================================================
+  /* =====================================================
+     لوحة التحكم
+  ===================================================== */
 
   async function renderAdmin() {
     if (!isAdmin) {
@@ -758,234 +889,155 @@
         true
       );
 
-      location.hash = '#home';
+      location.hash =
+        '#login';
+
       return;
     }
 
-    const admin = $('#admin');
+    showSection('admin');
 
-    if (admin) {
-      admin.classList.remove('hidden');
-    }
+    const {
+      data: movieCount
+    } =
+      await client
+        .from('movies')
+        .select('*', {
+          count: 'exact',
+          head: true
+        });
 
-    // -------------------------------------------------------
-    // Statistics
-    // -------------------------------------------------------
+    const {
+      data: seriesCount
+    } =
+      await client
+        .from('series')
+        .select('*', {
+          count: 'exact',
+          head: true
+        });
 
-    const counts =
-      await Promise.all(
-        [
-          'movies',
-          'series',
-          'seasons',
-          'episodes'
-        ].map((table) =>
-          client
-            .from(table)
-            .select('*', {
-              count: 'exact',
-              head: true
-            })
-        )
-      );
+    const {
+      count: seasonsCount
+    } =
+      await client
+        .from('seasons')
+        .select('*', {
+          count: 'exact',
+          head: true
+        });
 
-    const stats = $('#stats');
+    const {
+      count: episodesCount
+    } =
+      await client
+        .from('episodes')
+        .select('*', {
+          count: 'exact',
+          head: true
+        });
+
+    const stats =
+      $('#stats');
 
     if (stats) {
-      stats.innerHTML =
-        [
-          'الأفلام',
-          'المسلسلات',
-          'المواسم',
-          'الحلقات'
-        ]
-          .map(
-            (label, index) => `
-              <div class="stat">
+      stats.innerHTML = `
+        <div class="stat">
+          <strong>
+            ${movieCount?.length || 0}
+          </strong>
+          <span>الأفلام</span>
+        </div>
 
-                <strong>
-                  ${counts[index].count ?? 0}
-                </strong>
+        <div class="stat">
+          <strong>
+            ${seriesCount?.length || 0}
+          </strong>
+          <span>المسلسلات</span>
+        </div>
 
-                <span>
-                  ${label}
-                </span>
+        <div class="stat">
+          <strong>
+            ${seasonsCount || 0}
+          </strong>
+          <span>المواسم</span>
+        </div>
 
-              </div>
-            `
-          )
-          .join('');
+        <div class="stat">
+          <strong>
+            ${episodesCount || 0}
+          </strong>
+          <span>الحلقات</span>
+        </div>
+      `;
     }
 
     await renderMoviesAdmin();
     await renderSeriesAdmin();
     await renderSeasonsAdmin();
     await renderEpisodesAdmin();
-
-    // إضافة قسم TVmaze
-    renderTVmazeImport();
   }
 
-  // =========================================================
-  // TVmaze Import UI
-  // =========================================================
+  /* =====================================================
+     زر استيراد TVmaze
+  ===================================================== */
 
-  function renderTVmazeImport() {
-    const container =
-      $('#moviesAdmin');
-
-    if (!container) return;
-
-    // لا نكرر القسم إذا كان موجودًا
-    if ($('#tvmazeImportPanel')) return;
-
-    const panel =
-      document.createElement('div');
-
-    panel.id = 'tvmazeImportPanel';
-    panel.className = 'panel';
-
-    panel.innerHTML = `
-      <h3>
-        🤖 استيراد مسلسل تلقائيًا من TVmaze
-      </h3>
-
-      <p class="muted">
-        اكتب اسم المسلسل، وسيتم إرسال الطلب
-        إلى دالة tvmaze-import في Supabase.
-      </p>
-
-      <form
-        id="tvmazeImportForm"
-        class="admin-form"
-      >
-
-        <input
-          id="tvmazeQuery"
-          name="query"
-          type="text"
-          required
-          placeholder="مثال: Breaking Bad"
-        >
-
-        <button
-          id="tvmazeImportButton"
-          class="btn"
-          type="submit"
-        >
-          📥 استيراد المسلسل
-        </button>
-
-      </form>
-
-      <div
-        id="tvmazeResult"
-        class="muted"
-        style="margin-top:12px"
-      ></div>
-    `;
-
-    container.prepend(panel);
-
-    const form =
-      $('#tvmazeImportForm');
-
-    if (!form) return;
-
-    form.addEventListener(
-      'submit',
-      handleTVmazeImport
-    );
-  }
-
-  // =========================================================
-  // Call Supabase Edge Function
-  // =========================================================
-
-  async function handleTVmazeImport(event) {
-    event.preventDefault();
-
+  async function importFromTVmaze() {
     if (!client) {
       configError();
       return;
     }
 
-    if (!currentUser) {
-      toast(
-        'يجب تسجيل الدخول أولًا.',
-        true
-      );
-      return;
-    }
-
     if (!isAdmin) {
       toast(
-        'ليس لديك صلاحية المدير.',
+        'يجب أن تكون مديرًا.',
         true
       );
+
       return;
     }
 
-    const input =
-      $('#tvmazeQuery');
-
     const button =
-      $('#tvmazeImportButton');
-
-    const result =
-      $('#tvmazeResult');
+      $('#tvmazeImportBtn');
 
     const query =
-      input?.value.trim();
+      $('#tvmazeSearch')
+        ?.value
+        .trim();
 
     if (!query) {
       toast(
-        'اكتب اسم المسلسل أولًا.',
+        'اكتب اسم مسلسل للبحث.',
         true
       );
+
       return;
     }
-
-    // -------------------------------------------------------
-    // Loading
-    // -------------------------------------------------------
 
     if (button) {
       button.disabled = true;
       button.textContent =
-        '⏳ جاري الاستيراد…';
-    }
-
-    if (result) {
-      result.textContent =
-        'جاري البحث في TVmaze وإضافة البيانات…';
+        '⏳ جاري الاستيراد...';
     }
 
     try {
-      // -----------------------------------------------------
-      // Call Edge Function
-      // -----------------------------------------------------
-
-      const { data, error } =
+      const {
+        data,
+        error
+      } =
         await client.functions.invoke(
           'tvmaze-import',
           {
             body: {
-              query: query
+              query
             }
           }
         );
 
       if (error) {
-        console.error(
-          'TVmaze import error:',
-          error
-        );
+        console.error(error);
 
-        throw new Error(
-          error.message ||
-          'فشل الاتصال بدالة TVmaze.'
-        );
+        throw error;
       }
 
       console.log(
@@ -993,93 +1045,39 @@
         data
       );
 
-      // -----------------------------------------------------
-      // Success
-      // -----------------------------------------------------
+      toast(
+        'تم استيراد المسلسل بنجاح.'
+      );
 
-      let message =
-        'تم الاستيراد بنجاح.';
-
-      if (data?.message) {
-        message = data.message;
-      }
-
-      if (data?.title) {
-        message =
-          `تم استيراد "${data.title}" بنجاح.`;
-      }
-
-      if (data?.series?.title) {
-        message =
-          `تم استيراد "${data.series.title}" بنجاح.`;
-      }
-
-      toast(message);
-
-      if (result) {
-        result.innerHTML = `
-          <div>
-            ✅ ${esc(message)}
-          </div>
-
-          ${
-            data?.episodes
-              ? `
-                <div>
-                  عدد الحلقات:
-                  ${esc(data.episodes)}
-                </div>
-              `
-              : ''
-          }
-        `;
-      }
-
-      // إعادة تحميل المحتوى
       await loadContent();
 
-      // إعادة بناء لوحة التحكم
       await renderAdmin();
-
-      // إعادة التركيز على حقل البحث
-      setTimeout(() => {
-        const inputAgain =
-          $('#tvmazeQuery');
-
-        if (inputAgain) {
-          inputAgain.value = '';
-        }
-      }, 100);
-
     } catch (error) {
-      console.error(error);
+      console.error(
+        'TVmaze import error:',
+        error
+      );
 
-      const message =
+      toast(
         error?.message ||
-        'حدث خطأ أثناء الاستيراد.';
-
-      toast(message, true);
-
-      if (result) {
-        result.innerHTML = `
-          <div>
-            ❌ ${esc(message)}
-          </div>
-        `;
-      }
-
+          'حدث خطأ أثناء الاستيراد.',
+        true
+      );
     } finally {
       if (button) {
         button.disabled = false;
         button.textContent =
-          '📥 استيراد المسلسل';
+          '⬇ استيراد من TVmaze';
       }
     }
   }
 
-  // =========================================================
-  // Movies Admin
-  // =========================================================
+  window.importFromTVmaze =
+    importFromTVmaze;
+
+  /* =====================================================
+     إدارة الأفلام
+  ===================================================== */
 
   async function renderMoviesAdmin() {
     const container =
@@ -1182,466 +1180,94 @@
       <div class="panel">
 
         <h3>
+          🤖 استيراد مسلسل تلقائيًا
+        </h3>
+
+        <p class="muted">
+          ابحث عن مسلسل في TVmaze
+          لإضافته إلى SOKA.
+        </p>
+
+        <input
+          id="tvmazeSearch"
+          placeholder="مثال: Breaking Bad"
+        >
+
+        <button
+          id="tvmazeImportBtn"
+          class="btn"
+          type="button"
+          onclick="importFromTVmaze()"
+        >
+          ⬇ استيراد من TVmaze
+        </button>
+
+      </div>
+
+      <div class="panel">
+
+        <h3>
           🎬 الأفلام الحالية
         </h3>
 
         <div class="admin-list">
 
           ${
-            movies
-              .map(
-                (movie) => `
-                  <div>
+            movies.length
+              ? movies
+                  .map(
+                    movie => `
+                      <div>
 
-                    <b>
-                      ${esc(movie.title)}
-                    </b>
+                        <b>
+                          ${esc(
+                            movie.title
+                          )}
+                        </b>
 
-                    <button
-                      class="danger"
-                      onclick="deleteMovie('${movie.id}')"
-                    >
-                      حذف
-                    </button>
+                        <button
+                          class="danger"
+                          onclick="deleteMovie('${movie.id}')"
+                        >
+                          حذف
+                        </button>
 
-                  </div>
-                `
-              )
-              .join('') ||
-            `
-              <span class="muted">
-                لا توجد أفلام.
-              </span>
-            `
+                      </div>
+                    `
+                  )
+                  .join('')
+              : `
+                <span class="muted">
+                  لا توجد أفلام.
+                </span>
+              `
           }
 
         </div>
 
       </div>
     `;
-
-    // -------------------------------------------------------
-    // TVmaze import panel
-    // -------------------------------------------------------
-
-    renderTVmazeImport();
 
     const form =
       $('#movieForm');
 
-    if (!form) return;
-
-    form.addEventListener(
-      'submit',
-      async (event) => {
-        event.preventDefault();
-
-        const formData =
-          new FormData(event.target);
-
-        const object =
-          Object.fromEntries(
-            formData.entries()
-          );
-
-        object.year =
-          object.year
-            ? Number(object.year)
-            : null;
-
-        object.duration_minutes =
-          object.duration_minutes
-            ? Number(
-                object.duration_minutes
-              )
-            : null;
-
-        object.is_featured =
-          formData.has(
-            'is_featured'
-          );
-
-        object.is_published =
-          formData.has(
-            'is_published'
-          );
-
-        const { error } =
-          await client
-            .from('movies')
-            .insert(object);
-
-        if (error) {
-          toast(
-            error.message,
-            true
-          );
-
-          return;
-        }
-
-        toast(
-          'تمت إضافة الفيلم.'
-        );
-
-        await loadContent();
-        await renderAdmin();
-      }
-    );
-  }
-
-  // =========================================================
-  // Delete Movie
-  // =========================================================
-
-  window.deleteMovie =
-    async function (id) {
-      if (
-        !confirm(
-          'هل تريد حذف الفيلم؟'
-        )
-      ) {
-        return;
-      }
-
-      const { error } =
-        await client
-          .from('movies')
-          .delete()
-          .eq('id', id);
-
-      if (error) {
-        toast(
-          error.message,
-          true
-        );
-        return;
-      }
-
-      toast(
-        'تم حذف الفيلم.'
-      );
-
-      await loadContent();
-      await renderAdmin();
-    };
-
-  // =========================================================
-  // Series Admin
-  // =========================================================
-
-  async function renderSeriesAdmin() {
-    const container =
-      $('#seriesAdmin');
-
-    if (!container) return;
-
-    container.innerHTML = `
-      <div class="panel">
-
-        <h3>
-          ➕ إضافة مسلسل
-        </h3>
-
-        <form
-          id="seriesForm"
-          class="admin-form"
-        >
-
-          <input
-            name="title"
-            required
-            placeholder="اسم المسلسل"
-          >
-
-          <textarea
-            name="description"
-            placeholder="الوصف"
-          ></textarea>
-
-          <input
-            name="poster_url"
-            placeholder="رابط البوستر"
-          >
-
-          <input
-            name="backdrop_url"
-            placeholder="رابط الخلفية"
-          >
-
-          <div class="two">
-
-            <input
-              name="year"
-              type="number"
-              placeholder="السنة"
-            >
-
-            <input
-              name="genre"
-              placeholder="النوع"
-            >
-
-          </div>
-
-          <input
-            name="country"
-            placeholder="الدولة"
-          >
-
-          <label>
-            <input
-              name="is_featured"
-              type="checkbox"
-            >
-            مميز
-          </label>
-
-          <label>
-            <input
-              name="is_published"
-              type="checkbox"
-              checked
-            >
-            منشور
-          </label>
-
-          <button
-            class="btn"
-            type="submit"
-          >
-            إضافة المسلسل
-          </button>
-
-        </form>
-
-      </div>
-
-      <div class="panel">
-
-        <h3>
-          📺 المسلسلات الحالية
-        </h3>
-
-        <div class="admin-list">
-
-          ${
-            series
-              .map(
-                (item) => `
-                  <div>
-
-                    <b>
-                      ${esc(item.title)}
-                    </b>
-
-                    <button
-                      class="danger"
-                      onclick="deleteSeries('${item.id}')"
-                    >
-                      حذف
-                    </button>
-
-                  </div>
-                `
-              )
-              .join('') ||
-            `
-              <span class="muted">
-                لا توجد مسلسلات.
-              </span>
-            `
-          }
-
-        </div>
-
-      </div>
-    `;
-
-    const form =
-      $('#seriesForm');
-
-    if (!form) return;
-
-    form.addEventListener(
-      'submit',
-      async (event) => {
-        event.preventDefault();
-
-        const formData =
-          new FormData(event.target);
-
-        const object =
-          Object.fromEntries(
-            formData.entries()
-          );
-
-        object.year =
-          object.year
-            ? Number(object.year)
-            : null;
-
-        object.is_featured =
-          formData.has(
-            'is_featured'
-          );
-
-        object.is_published =
-          formData.has(
-            'is_published'
-          );
-
-        const { error } =
-          await client
-            .from('series')
-            .insert(object);
-
-        if (error) {
-          toast(
-            error.message,
-            true
-          );
-          return;
-        }
-
-        toast(
-          'تمت إضافة المسلسل.'
-        );
-
-        await loadContent();
-        await renderAdmin();
-      }
-    );
-  }
-
-  // =========================================================
-  // Delete Series
-  // =========================================================
-
-  window.deleteSeries =
-    async function (id) {
-      if (
-        !confirm(
-          'حذف المسلسل؟ ستُحذف مواسمه وحلقاته المرتبطة إذا كانت العلاقات في قاعدة البيانات مضبوطة للحذف المتسلسل.'
-        )
-      ) {
-        return;
-      }
-
-      const { error } =
-        await client
-          .from('series')
-          .delete()
-          .eq('id', id);
-
-      if (error) {
-        toast(
-          error.message,
-          true
-        );
-        return;
-      }
-
-      toast(
-        'تم حذف المسلسل.'
-      );
-
-      await loadContent();
-      await renderAdmin();
-    };
-
-  // =========================================================
-  // Seasons Admin
-  // =========================================================
-
-  async function renderSeasonsAdmin() {
-    const container =
-      $('#seasonsAdmin');
-
-    if (!container) return;
-
-    const { data, error } =
-      await client
-        .from('seasons')
-        .select(
-          '*,series(title)'
-        )
-        .order(
-          'created_at',
-          { ascending: false }
-        );
-
-    if (error) {
-      toast(
-        error.message,
-        true
-      );
-      return;
-    }
-
-    seasons = data || [];
-
-    container.innerHTML = `
-      <div class="panel">
-
-        <h3>
-          ➕ إضافة موسم
-        </h3>
-
-        <form
-          id="seasonForm"
-          class="admin-form"
-        >
-
-          <select
-            name="series_id"
-            required
-          >
-
-            ${
-              series
-                .map(
-                  (item) => `
-                    <option
-                      value="${item.id}"
-                    >
-                      ${esc(item.title)}
-                    </option>
-                  `
-                )
-                .join('')
-            }
-
-          </select>
-
-          <input
-            name="season_number"
-            type="number"
-            min="1"
-            required
-            placeholder="رقم الموسم"
-          >
-
-          <input
-            name="title"
-            placeholder="اسم اختياري"
-          >
-
-          <button
-            class="btn"
-            type="submit"
-          >
-            إضافة الموسم
-          </button>
-
-        </form>
-
-      </div>
-
-      <div class="panel">
-
-        <h3>
-          المواسم الحالية
-        </h3>
-
-        <div class="admin
+    if (form) {
+      form.addEventListener(
+        'submit',
+        async event => {
+          event.preventDefault();
+
+          const formData =
+            new FormData(
+              event.target
+            );
+
+          const data =
+            Object.fromEntries(
+              formData.entries()
+            );
+
+          data.year =
+            data.year
+              ? Number(data.year)
+              :
