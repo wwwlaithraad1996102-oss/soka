@@ -3,15 +3,15 @@
 
   console.log("SOKA app.js started");
 
+  // =====================================================
+  // إعداد Supabase
+  // =====================================================
+
   const cfg = window.SOKA_CONFIG || {};
 
   let supabaseClient = null;
   let currentUser = null;
   let isAdmin = false;
-
-  // =====================================================
-  // إنشاء اتصال Supabase
-  // =====================================================
 
   try {
     if (
@@ -23,6 +23,10 @@
         cfg.supabaseUrl,
         cfg.supabaseAnonKey
       );
+
+      console.log("Supabase connected");
+    } else {
+      console.error("Supabase configuration missing");
     }
   } catch (error) {
     console.error("Supabase initialization error:", error);
@@ -43,17 +47,20 @@
       box = document.createElement("div");
       box.id = "message";
 
-      box.style.position = "fixed";
-      box.style.top = "20px";
-      box.style.left = "20px";
-      box.style.right = "20px";
-      box.style.zIndex = "99999";
-      box.style.padding = "15px";
-      box.style.borderRadius = "10px";
-      box.style.fontSize = "16px";
-      box.style.textAlign = "center";
-      box.style.background = "#15151c";
-      box.style.color = "#fff";
+      Object.assign(box.style, {
+        position: "fixed",
+        top: "20px",
+        left: "20px",
+        right: "20px",
+        zIndex: "999999",
+        padding: "15px",
+        borderRadius: "12px",
+        fontSize: "16px",
+        textAlign: "center",
+        color: "#fff",
+        fontWeight: "600",
+        boxShadow: "0 10px 30px rgba(0,0,0,.4)"
+      });
 
       document.body.appendChild(box);
     }
@@ -61,97 +68,85 @@
     box.textContent = message;
 
     if (type === "error") {
-      box.style.background = "#8b1e1e";
+      box.style.background = "#a51d2d";
     } else if (type === "success") {
-      box.style.background = "#176b3a";
+      box.style.background = "#18794e";
     } else {
-      box.style.background = "#15151c";
+      box.style.background = "#24242d";
     }
 
     box.style.display = "block";
 
-    setTimeout(() => {
-      if (box) {
-        box.style.display = "none";
-      }
+    clearTimeout(box._timer);
+
+    box._timer = setTimeout(() => {
+      box.style.display = "none";
     }, 5000);
   }
 
   // =====================================================
-  // إخفاء كل الصفحات
+  // إظهار عنصر مخفي
+  // =====================================================
+
+  function showElement(element, display = "") {
+    if (!element) return;
+
+    element.classList.remove("hidden");
+
+    element.removeAttribute("hidden");
+
+    element.style.removeProperty("display");
+
+    if (display) {
+      element.style.setProperty("display", display, "important");
+    }
+  }
+
+  // =====================================================
+  // إخفاء عنصر
+  // =====================================================
+
+  function hideElement(element) {
+    if (!element) return;
+
+    element.classList.add("hidden");
+
+    element.style.setProperty(
+      "display",
+      "none",
+      "important"
+    );
+  }
+
+  // =====================================================
+  // إخفاء الأقسام
   // =====================================================
 
   function hideAllSections() {
     document
       .querySelectorAll("main > section")
       .forEach(section => {
-        section.style.display = "none";
+        hideElement(section);
       });
   }
 
   // =====================================================
-  // الصفحة الرئيسية
-  // =====================================================
-
-  function showHome() {
-    hideAllSections();
-
-    const home = $("home");
-
-    if (home) {
-      home.style.display = "block";
-    }
-
-    updateUserInterface();
-  }
-
-  // =====================================================
-  // صفحة تسجيل الدخول
-  // =====================================================
-
-  function showLogin() {
-    hideAllSections();
-
-    const login = $("login");
-
-    if (login) {
-      login.style.display = "block";
-    }
-  }
-
-  // =====================================================
-  // لوحة التحكم
-  // =====================================================
-
-  function showAdmin() {
-    hideAllSections();
-
-    const admin = $("admin");
-
-    if (!admin) {
-      showMessage(
-        "لم يتم العثور على قسم لوحة التحكم داخل index.html",
-        "error"
-      );
-      return;
-    }
-
-    admin.style.display = "block";
-
-    updateUserInterface();
-
-    loadAdmin();
-  }
-
-  // =====================================================
-  // واجهة المستخدم
+  // تحديث واجهة المستخدم
   // =====================================================
 
   function updateUserInterface() {
-
     const authNav = $("authNav");
     const logoutBtn = $("logoutBtn");
     const adminNav = $("adminNav");
+
+    console.log("Updating UI:", {
+      user: currentUser?.email,
+      admin: isAdmin
+    });
+
+    // ---------------------------------------------
+    // المستخدم مسجل الدخول
+    // ---------------------------------------------
 
     if (currentUser) {
 
@@ -162,19 +157,30 @@
         authNav.href = "#home";
       }
 
+      // إظهار زر تسجيل الخروج
       if (logoutBtn) {
-        logoutBtn.style.display = "inline-block";
+        showElement(logoutBtn, "inline-block");
       }
 
+      // إظهار لوحة التحكم للمدير
       if (adminNav) {
+
         if (isAdmin) {
-          adminNav.style.display = "inline-block";
+          showElement(adminNav, "inline-block");
+
+          console.log(
+            "Admin navigation shown"
+          );
         } else {
-          adminNav.style.display = "none";
+          hideElement(adminNav);
         }
       }
 
     } else {
+
+      // ---------------------------------------------
+      // لا يوجد مستخدم
+      // ---------------------------------------------
 
       if (authNav) {
         authNav.textContent = "تسجيل الدخول";
@@ -182,17 +188,17 @@
       }
 
       if (logoutBtn) {
-        logoutBtn.style.display = "none";
+        hideElement(logoutBtn);
       }
 
       if (adminNav) {
-        adminNav.style.display = "none";
+        hideElement(adminNav);
       }
     }
   }
 
   // =====================================================
-  // التحقق من المدير
+  // فحص صلاحية المدير
   // =====================================================
 
   async function checkAdmin(user) {
@@ -201,57 +207,66 @@
 
     if (!user || !supabaseClient) {
       updateUserInterface();
-      return;
+      return false;
     }
+
+    console.log(
+      "Checking admin profile:",
+      user.id
+    );
 
     try {
 
-      console.log("Checking admin:", user.id);
-
-      const result =
+      const { data, error } =
         await supabaseClient
           .from("profiles")
-          .select("role")
+          .select("id, role")
           .eq("id", user.id)
           .maybeSingle();
 
-      console.log("Profile result:", result);
+      console.log("Admin profile:", {
+        data,
+        error
+      });
 
-      if (result.error) {
+      if (error) {
 
         console.error(
-          "Profile/RLS error:",
-          result.error
+          "Profile error:",
+          error
         );
 
         /*
-         لا نوقف الموقع هنا.
-         حتى لو كان هناك خطأ RLS سيبقى الموقع يعمل.
+          لا نستخدم profiles.email
+          ولا updated_at.
         */
 
         isAdmin = false;
 
       } else if (
-        result.data &&
-        result.data.role === "admin"
+        data &&
+        data.role === "admin"
       ) {
 
         isAdmin = true;
 
         console.log(
-          "SOKA ADMIN: YES"
+          "SOKA ADMIN = TRUE"
         );
 
       } else {
 
         isAdmin = false;
 
+        console.log(
+          "User is not admin"
+        );
       }
 
     } catch (error) {
 
       console.error(
-        "Admin check failed:",
+        "checkAdmin exception:",
         error
       );
 
@@ -259,19 +274,17 @@
     }
 
     updateUserInterface();
+
+    return isAdmin;
   }
 
   // =====================================================
-  // فحص جلسة المستخدم
+  // فحص الجلسة
   // =====================================================
 
   async function checkSession() {
 
     if (!supabaseClient) {
-
-      console.error(
-        "Supabase client not available"
-      );
 
       showMessage(
         "تعذر الاتصال بـ Supabase. تحقق من config.js",
@@ -283,21 +296,35 @@
 
     try {
 
-      const result =
+      const {
+        data,
+        error
+      } =
         await supabaseClient.auth.getSession();
 
       console.log(
-        "Session:",
-        result
+        "Current session:",
+        data
       );
 
+      if (error) {
+
+        console.error(
+          "getSession error:",
+          error
+        );
+
+        return;
+      }
+
       if (
-        result.data &&
-        result.data.session
+        data &&
+        data.session &&
+        data.session.user
       ) {
 
         currentUser =
-          result.data.session.user;
+          data.session.user;
 
         await checkAdmin(currentUser);
 
@@ -312,15 +339,34 @@
     } catch (error) {
 
       console.error(
-        "Session error:",
+        "Session exception:",
         error
       );
 
       showMessage(
-        "حدث خطأ أثناء فحص تسجيل الدخول.",
+        "حدث خطأ أثناء فحص جلسة الدخول.",
         "error"
       );
     }
+  }
+
+  // =====================================================
+  // الصفحة الرئيسية
+  // =====================================================
+
+  function showHome() {
+
+    hideAllSections();
+
+    const home = $("home");
+
+    if (home) {
+      showElement(home, "block");
+    }
+
+    updateUserInterface();
+
+    console.log("Home displayed");
   }
 
   // =====================================================
@@ -330,6 +376,8 @@
   async function login(event) {
 
     event.preventDefault();
+
+    console.log("Login started");
 
     if (!supabaseClient) {
 
@@ -369,38 +417,71 @@
 
     try {
 
-      const result =
+      const {
+        data,
+        error
+      } =
         await supabaseClient.auth.signInWithPassword({
-          email: email,
-          password: password
+          email,
+          password
         });
 
       console.log(
-        "Login result:",
-        result
+        "Login response:",
+        {
+          data,
+          error
+        }
       );
 
-      if (result.error) {
+      if (error) {
+
+        console.error(
+          "Login error:",
+          error
+        );
 
         showMessage(
-          result.error.message,
+          error.message ||
+          "فشل تسجيل الدخول.",
           "error"
         );
 
         return;
       }
 
-      currentUser =
-        result.data.user;
+      if (!data || !data.user) {
 
+        showMessage(
+          "تم الدخول لكن لم يتم العثور على المستخدم.",
+          "error"
+        );
+
+        return;
+      }
+
+      currentUser = data.user;
+
+      // فحص المدير
       await checkAdmin(currentUser);
 
-      showMessage(
-        isAdmin
-          ? "تم تسجيل الدخول بنجاح — أنت المدير."
-          : "تم تسجيل الدخول بنجاح.",
-        "success"
-      );
+      // تحديث الواجهة
+      updateUserInterface();
+
+      if (isAdmin) {
+
+        showMessage(
+          "تم تسجيل الدخول بنجاح — أنت المدير ✅",
+          "success"
+        );
+
+      } else {
+
+        showMessage(
+          "تم تسجيل الدخول بنجاح.",
+          "success"
+        );
+      }
 
       location.hash = "#home";
 
@@ -414,6 +495,7 @@
       );
 
       showMessage(
+        error.message ||
         "حدث خطأ أثناء تسجيل الدخول.",
         "error"
       );
@@ -434,6 +516,8 @@
   async function signup(event) {
 
     event.preventDefault();
+
+    console.log("Signup started");
 
     if (!supabaseClient) {
 
@@ -481,61 +565,74 @@
 
     if (button) {
       button.disabled = true;
-      button.textContent = "جاري إنشاء الحساب...";
+      button.textContent =
+        "جاري إنشاء الحساب...";
     }
 
     try {
 
-      const result =
+      const {
+        data,
+        error
+      } =
         await supabaseClient.auth.signUp({
 
-          email: email,
+          email,
 
-          password: password,
+          password,
 
           options: {
             data: {
               full_name: name
             }
           }
-
         });
 
       console.log(
-        "Signup result:",
-        result
+        "Signup response:",
+        {
+          data,
+          error
+        }
       );
 
-      if (result.error) {
+      if (error) {
 
         showMessage(
-          result.error.message,
+          error.message ||
+          "فشل إنشاء الحساب.",
           "error"
         );
 
         return;
       }
 
-      if (result.data.session) {
+      if (
+        data &&
+        data.session &&
+        data.user
+      ) {
 
         currentUser =
-          result.data.user;
+          data.user;
 
         await checkAdmin(currentUser);
 
-        showMessage(
-          "تم إنشاء الحساب وتسجيل الدخول بنجاح.",
-          "success"
-        );
+        updateUserInterface();
 
         location.hash = "#home";
 
         showHome();
 
+        showMessage(
+          "تم إنشاء الحساب وتسجيل الدخول بنجاح ✅",
+          "success"
+        );
+
       } else {
 
         showMessage(
-          "تم إنشاء الحساب. تحقق من بريدك الإلكتروني إذا كان تأكيد البريد مفعّلًا.",
+          "تم إنشاء الحساب. تحقق من بريدك الإلكتروني لتأكيد الحساب.",
           "success"
         );
       }
@@ -548,6 +645,7 @@
       );
 
       showMessage(
+        error.message ||
         "حدث خطأ أثناء إنشاء الحساب.",
         "error"
       );
@@ -556,7 +654,8 @@
 
       if (button) {
         button.disabled = false;
-        button.textContent = "إنشاء حساب";
+        button.textContent =
+          "إنشاء حساب";
       }
     }
   }
@@ -567,13 +666,22 @@
 
   async function logout() {
 
+    console.log("Logout started");
+
     if (!supabaseClient) {
       return;
     }
 
     try {
 
-      await supabaseClient.auth.signOut();
+      const {
+        error
+      } =
+        await supabaseClient.auth.signOut();
+
+      if (error) {
+        throw error;
+      }
 
       currentUser = null;
       isAdmin = false;
@@ -585,7 +693,7 @@
       showHome();
 
       showMessage(
-        "تم تسجيل الخروج.",
+        "تم تسجيل الخروج بنجاح.",
         "success"
       );
 
@@ -595,87 +703,69 @@
         "Logout error:",
         error
       );
+
+      showMessage(
+        error.message ||
+        "تعذر تسجيل الخروج.",
+        "error"
+      );
     }
   }
 
   // =====================================================
-  // تحميل لوحة التحكم
+  // لوحة التحكم
   // =====================================================
 
-  async function loadAdmin() {
+  function showAdmin() {
 
-    const adminContent =
-      $("adminContent");
+    console.log(
+      "Opening admin panel"
+    );
 
-    if (adminContent) {
-
-      adminContent.innerHTML = `
-        <div style="
-          padding:20px;
-          background:#111118;
-          border-radius:15px;
-          margin-top:20px;
-        ">
-          <h2>⚙️ لوحة تحكم SOKA</h2>
-
-          <p>
-            مرحبًا بك يا مدير SOKA
-          </p>
-
-          <p>
-            البريد:
-            ${
-              currentUser
-                ? currentUser.email
-                : ""
-            }
-          </p>
-
-          <p>
-            صلاحية المدير:
-            ${
-              isAdmin
-                ? "✅ Admin"
-                : "❌ غير متاحة"
-            }
-          </p>
-
-          <hr>
-
-          <h3>🎬 الأفلام</h3>
-
-          <p>
-            سيتم إضافة إدارة الأفلام هنا في الخطوة التالية.
-          </p>
-
-          <h3>📺 المسلسلات</h3>
-
-          <p>
-            سيتم إضافة إدارة المسلسلات هنا في الخطوة التالية.
-          </p>
-
-          <h3>📥 TVmaze</h3>
-
-          <p>
-            سيتم إضافة مستورد TVmaze هنا في الخطوة التالية.
-          </p>
-        </div>
-      `;
-
-      return;
-    }
-
-    /*
-      إذا لم يكن adminContent موجودًا
-      نستخدم قسم admin نفسه.
-    */
+    hideAllSections();
 
     const admin =
       $("admin");
 
-    if (admin) {
+    if (!admin) {
 
-      let box =
+      showMessage(
+        "قسم لوحة التحكم غير موجود في index.html",
+        "error"
+      );
+
+      return;
+    }
+
+    // إزالة hidden بشكل إجباري
+    showElement(admin, "block");
+
+    updateUserInterface();
+
+    renderAdmin();
+
+    console.log(
+      "Admin panel displayed"
+    );
+  }
+
+  // =====================================================
+  // محتوى لوحة التحكم
+  // =====================================================
+
+  function renderAdmin() {
+
+    const admin =
+      $("admin");
+
+    if (!admin) return;
+
+    let box =
+      $("adminContent");
+
+    if (!box) {
+
+      box =
         admin.querySelector(
           ".soka-admin-box"
         );
@@ -683,65 +773,101 @@
       if (!box) {
 
         box =
-          document.createElement(
-            "div"
-          );
+          document.createElement("div");
 
         box.className =
           "soka-admin-box";
 
-        box.style.padding =
-          "20px";
-
-        box.style.marginTop =
-          "20px";
-
-        box.style.background =
-          "#111118";
-
-        box.style.borderRadius =
-          "15px";
-
         admin.appendChild(box);
       }
+    }
 
-      box.innerHTML = `
+    box.style.padding = "20px";
+    box.style.marginTop = "20px";
+    box.style.background = "#111118";
+    box.style.borderRadius = "15px";
+    box.style.color = "#fff";
 
-        <h2>
-          ⚙️ لوحة تحكم SOKA
-        </h2>
+    box.innerHTML = `
 
-        <p>
-          أهلاً بك في لوحة التحكم.
-        </p>
+      <h2>⚙️ لوحة تحكم SOKA</h2>
 
-        <p>
-          المدير:
-          ${
-            currentUser?.email || ""
-          }
-        </p>
+      <p>
+        أهلاً بك في لوحة تحكم SOKA.
+      </p>
 
-        <p>
-          الصلاحية:
+      <p>
+        المدير:
+        <strong>
+          ${currentUser?.email || ""}
+        </strong>
+      </p>
+
+      <p>
+        الصلاحية:
+        <strong>
           ${
             isAdmin
-              ? "✅ Admin"
-              : "⚠️ لم يتم تأكيد صلاحية المدير"
+              ? "✅ ADMIN"
+              : "❌ غير متاحة"
           }
-        </p>
+        </strong>
+      </p>
 
-        <hr>
+      <hr>
 
-        <h3>🎬 الأفلام</h3>
-        <p>إدارة الأفلام ستكون هنا.</p>
+      <h3>🎬 الأفلام</h3>
 
-        <h3>📺 المسلسلات</h3>
-        <p>إدارة المسلسلات ستكون هنا.</p>
+      <p>
+        إدارة الأفلام جاهزة للربط مع جدول movies.
+      </p>
 
-        <h3>📥 TVmaze</h3>
-        <p>استيراد المسلسلات سيكون هنا.</p>
-      `;
+      <div id="adminMoviesBox"></div>
+
+      <hr>
+
+      <h3>📺 المسلسلات</h3>
+
+      <p>
+        إدارة المسلسلات جاهزة للربط مع جدول series.
+      </p>
+
+      <div id="adminSeriesBox"></div>
+
+      <hr>
+
+      <h3>📥 استيراد TVmaze</h3>
+
+      <p>
+        سيتم إضافة مستورد TVmaze في الخطوة التالية.
+      </p>
+
+      <button
+        id="tvmazeImportBtn"
+        class="btn"
+        type="button"
+      >
+        📥 استيراد TVmaze
+      </button>
+
+    `;
+
+    const tvmazeButton =
+      $("tvmazeImportBtn");
+
+    if (tvmazeButton) {
+
+      tvmazeButton.addEventListener(
+        "click",
+        () => {
+
+          showMessage(
+            "مستورد TVmaze سيتم تفعيله في الخطوة التالية.",
+            "info"
+          );
+
+        }
+      );
     }
   }
 
@@ -761,7 +887,8 @@
 
     if (hash === "#login") {
 
-      showLogin();
+      showLoginPage();
+
       return;
     }
 
@@ -770,26 +897,31 @@
       if (!currentUser) {
 
         showMessage(
-          "يجب تسجيل الدخول أولًا.",
+          "يجب تسجيل الدخول أولاً.",
           "error"
         );
 
         location.hash = "#login";
+
         return;
       }
 
       if (!isAdmin) {
 
         showMessage(
-          "الحساب مسجل الدخول، لكن صلاحية المدير غير متاحة.",
+          "هذا الحساب ليس لديه صلاحية المدير.",
           "error"
         );
 
+        location.hash = "#home";
+
         showHome();
+
         return;
       }
 
       showAdmin();
+
       return;
     }
 
@@ -797,34 +929,164 @@
   }
 
   // =====================================================
-  // الأحداث
+  // صفحة تسجيل الدخول
+  // =====================================================
+
+  function showLoginPage() {
+
+    hideAllSections();
+
+    const login =
+      $("login");
+
+    if (login) {
+      showElement(login, "block");
+    }
+
+    updateUserInterface();
+  }
+
+  // =====================================================
+  // أحداث المصادقة
   // =====================================================
 
   function setupEvents() {
 
-    $("loginForm")?.addEventListener(
-      "submit",
-      login
-    );
+    const loginForm =
+      $("loginForm");
 
-    $("signupForm")?.addEventListener(
-      "submit",
-      signup
-    );
+    if (loginForm) {
 
-    $("logoutBtn")?.addEventListener(
-      "click",
-      logout
-    );
+      loginForm.addEventListener(
+        "submit",
+        login
+      );
+
+      console.log(
+        "Login form connected"
+      );
+    }
+
+    const signupForm =
+      $("signupForm");
+
+    if (signupForm) {
+
+      signupForm.addEventListener(
+        "submit",
+        signup
+      );
+
+      console.log(
+        "Signup form connected"
+      );
+    }
+
+    const logoutBtn =
+      $("logoutBtn");
+
+    if (logoutBtn) {
+
+      logoutBtn.addEventListener(
+        "click",
+        logout
+      );
+
+      console.log(
+        "Logout button connected"
+      );
+    }
 
     window.addEventListener(
       "hashchange",
       route
     );
+
+    // مراقبة تغيّر حالة Supabase
+    if (supabaseClient) {
+
+      supabaseClient.auth.onAuthStateChange(
+        async (event, session) => {
+
+          console.log(
+            "Auth event:",
+            event
+          );
+
+          if (session?.user) {
+
+            currentUser =
+              session.user;
+
+            /*
+              لا نحتاج فحص admin في كل event
+              بشكل متكرر، لكن نفحصه عند تسجيل الدخول.
+            */
+
+            if (
+              event === "SIGNED_IN" ||
+              event === "INITIAL_SESSION"
+            ) {
+
+              await checkAdmin(
+                currentUser
+              );
+
+            } else {
+
+              updateUserInterface();
+            }
+
+          } else {
+
+            currentUser = null;
+            isAdmin = false;
+
+            updateUserInterface();
+          }
+        }
+      );
+    }
   }
 
   // =====================================================
-  // تشغيل SOKA
+  // حماية الأخطاء
+  // =====================================================
+
+  window.addEventListener(
+    "error",
+    event => {
+
+      console.error(
+        "SOKA JS Error:",
+        event.error
+      );
+
+      showMessage(
+        "حدث خطأ في الموقع. راجع Console.",
+        "error"
+      );
+    }
+  );
+
+  window.addEventListener(
+    "unhandledrejection",
+    event => {
+
+      console.error(
+        "SOKA Promise Error:",
+        event.reason
+      );
+
+      showMessage(
+        "حدث خطأ أثناء تنفيذ العملية.",
+        "error"
+      );
+    }
+  );
+
+  // =====================================================
+  // بدء التطبيق
   // =====================================================
 
   async function start() {
@@ -837,48 +1099,14 @@
 
     await checkSession();
 
+    updateUserInterface();
+
     route();
 
     console.log(
       "SOKA started successfully"
     );
   }
-
-  // =====================================================
-  // حماية من الشاشة البيضاء
-  // =====================================================
-
-  window.addEventListener(
-    "error",
-    event => {
-
-      console.error(
-        "SOKA JavaScript error:",
-        event.error
-      );
-
-      showMessage(
-        "حدث خطأ في الموقع. افتح Console لمعرفة التفاصيل.",
-        "error"
-      );
-    }
-  );
-
-  window.addEventListener(
-    "unhandledrejection",
-    event => {
-
-      console.error(
-        "SOKA Promise error:",
-        event.reason
-      );
-
-      showMessage(
-        "حدث خطأ أثناء تنفيذ العملية.",
-        "error"
-      );
-    }
-  );
 
   start();
 
