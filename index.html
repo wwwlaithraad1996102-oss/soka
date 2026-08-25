@@ -1,12 +1,11 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
-
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
 
   <meta
     name="viewport"
-    content="width=device-width, initial-scale=1, viewport-fit=cover"
+    content="width=device-width, initial-scale=1.0"
   >
 
   <meta
@@ -14,136 +13,480 @@
     content="#08080b"
   >
 
-  <meta
-    name="description"
-    content="SOKA — منصة أفلام ومسلسلات"
-  >
-
   <title>SOKA — أفلام ومسلسلات</title>
 
-  <link rel="stylesheet" href="style.css">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #08080b;
+      color: #fff;
+      font-family: Arial, sans-serif;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button,
+    input,
+    textarea,
+    select {
+      font: inherit;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: #111116;
+      border-bottom: 1px solid #292932;
+      padding: 15px 20px;
+    }
+
+    .nav {
+      max-width: 1200px;
+      margin: auto;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      font-size: 28px;
+      font-weight: bold;
+      color: #ff1744;
+      margin-left: auto;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .nav-links a,
+    .nav-links button {
+      background: #1a1a21;
+      border: 1px solid #30303a;
+      color: #fff;
+      padding: 9px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .nav-links a:hover,
+    .nav-links button:hover {
+      background: #ff1744;
+    }
+
+    main {
+      max-width: 1200px;
+      margin: auto;
+      padding: 20px;
+    }
+
+    .hero {
+      min-height: 300px;
+      display: flex;
+      align-items: center;
+      padding: 40px;
+      border-radius: 18px;
+      background:
+        linear-gradient(
+          135deg,
+          #191922,
+          #0d0d12
+        );
+      margin-bottom: 25px;
+    }
+
+    .hero h1 {
+      font-size: 42px;
+      margin: 10px 0;
+    }
+
+    .hero p {
+      color: #bbb;
+    }
+
+    .section {
+      margin-bottom: 30px;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns:
+        repeat(auto-fill, minmax(170px, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      background: #111116;
+      border: 1px solid #292932;
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: .2s;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: #ff1744;
+    }
+
+    .card img {
+      width: 100%;
+      height: 250px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .card-body {
+      padding: 12px;
+    }
+
+    .card-body h3 {
+      margin: 0 0 8px;
+      font-size: 17px;
+    }
+
+    .muted {
+      color: #999;
+    }
+
+    .btn {
+      background: #ff1744;
+      color: white;
+      border: 0;
+      padding: 12px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .btn:hover {
+      background: #e9143d;
+    }
+
+    .auth-card,
+    .panel,
+    .detail-card,
+    .watch-box {
+      background: #111116;
+      border: 1px solid #292932;
+      border-radius: 15px;
+      padding: 25px;
+      margin-bottom: 20px;
+    }
+
+    .auth-card {
+      max-width: 500px;
+      margin: 40px auto;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      background: #09090d;
+      color: white;
+      border: 1px solid #33333d;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+      outline: none;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: #ff1744;
+    }
+
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns:
+        repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .stat {
+      background: #111116;
+      border: 1px solid #292932;
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 30px;
+      color: #ff1744;
+    }
+
+    .admin-tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .admin-tabs button {
+      border: 1px solid #33333d;
+      background: #15151c;
+      color: white;
+      padding: 10px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .admin-tabs button.active {
+      background: #ff1744;
+    }
+
+    .admin-form {
+      display: grid;
+      gap: 8px;
+    }
+
+    .two {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .admin-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .admin-list > div {
+      background: #09090d;
+      border: 1px solid #292932;
+      padding: 12px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .admin-list b {
+      flex: 1;
+    }
+
+    .danger {
+      background: #b00020;
+      color: white;
+      border: 0;
+      padding: 8px 12px;
+      border-radius: 7px;
+      cursor: pointer;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 9999;
+      background: #202027;
+      color: white;
+      padding: 14px 18px;
+      border-radius: 10px;
+      display: none;
+      max-width: 90%;
+    }
+
+    .toast.show {
+      display: block;
+    }
+
+    .toast.error {
+      background: #a00020;
+    }
+
+    .loading,
+    .empty {
+      background: #111116;
+      border: 1px solid #292932;
+      padding: 25px;
+      border-radius: 10px;
+      color: #aaa;
+    }
+
+    video {
+      width: 100%;
+      max-height: 70vh;
+      background: black;
+      border-radius: 10px;
+    }
+
+    footer {
+      text-align: center;
+      color: #777;
+      padding: 30px;
+      border-top: 1px solid #222;
+      margin-top: 40px;
+    }
+
+    @media (max-width: 600px) {
+
+      .brand {
+        width: 100%;
+        text-align: center;
+      }
+
+      .nav {
+        justify-content: center;
+      }
+
+      .nav-links {
+        justify-content: center;
+      }
+
+      .hero h1 {
+        font-size: 30px;
+      }
+
+      .two {
+        grid-template-columns: 1fr;
+      }
+
+      .card img {
+        height: 220px;
+      }
+    }
+  </style>
 </head>
 
 <body>
 
-  <!-- =====================================================
-       رسالة النظام
-  ====================================================== -->
-
   <div id="toast" class="toast"></div>
 
-  <!-- =====================================================
-       HEADER
-  ====================================================== -->
+  <!-- ================= HEADER ================= -->
 
   <header class="topbar">
 
-    <a
-      class="brand"
-      href="#home"
-    >
-      SOKA
-    </a>
+    <div class="nav">
 
-    <nav>
-
-      <a href="#home">
-        الرئيسية
+      <a href="#home" class="brand">
+        SOKA
       </a>
 
-      <a href="#movies">
-        الأفلام
-      </a>
+      <nav class="nav-links">
 
-      <a href="#series">
-        المسلسلات
-      </a>
+        <a href="#home">
+          الرئيسية
+        </a>
 
-      <a href="#search">
-        البحث
-      </a>
+        <a href="#movies">
+          🎬 الأفلام
+        </a>
 
-      <!-- يظهر للمدير فقط -->
+        <a href="#series">
+          📺 المسلسلات
+        </a>
 
-      <a
-        id="adminNav"
-        class="hidden"
-        href="#admin"
-      >
-        ⚙️ لوحة التحكم
-      </a>
+        <a href="#search">
+          🔎 البحث
+        </a>
 
-      <!-- تسجيل الدخول -->
+        <a
+          id="authNav"
+          href="#login"
+        >
+          🔐 تسجيل الدخول
+        </a>
 
-      <a
-        id="authNav"
-        class="login"
-        href="#login"
-      >
-        تسجيل الدخول
-      </a>
+        <a
+          id="adminNav"
+          href="#admin"
+          class="hidden"
+        >
+          ⚙️ لوحة التحكم
+        </a>
 
-      <!-- تسجيل الخروج -->
+        <button
+          id="logoutBtn"
+          class="hidden"
+          type="button"
+        >
+          🚪 تسجيل الخروج
+        </button>
 
-      <button
-        id="logoutBtn"
-        class="ghost hidden"
-        type="button"
-      >
-        خروج
-      </button>
+      </nav>
 
-    </nav>
+    </div>
 
   </header>
 
 
-  <!-- =====================================================
-       MAIN
-  ====================================================== -->
+  <!-- ================= MAIN ================= -->
 
   <main>
 
-
-    <!-- ===================================================
-         HOME
-    ==================================================== -->
+    <!-- HOME -->
 
     <section
       id="home"
-      class="hero"
+      class="section"
     >
 
-      <div class="hero-content">
+      <div class="hero">
 
-        <span class="badge">
-          SOKA
-        </span>
+        <div>
 
-        <h1>
-          عالمك السينمائي في مكان واحد
-        </h1>
+          <span>
+            SOKA ORIGINAL
+          </span>
 
-        <p>
-          أفلام ومسلسلات ومواسم وحلقات
-          في واجهة واحدة.
-        </p>
+          <h1>
+            عالمك السينمائي في مكان واحد
+          </h1>
 
-        <a
-          class="btn"
-          href="#movies"
-        >
-          استكشف الآن
-        </a>
+          <p>
+            أفلام ومسلسلات ومواسم وحلقات
+            في منصة واحدة.
+          </p>
+
+          <a
+            href="#movies"
+            class="btn"
+          >
+            استكشف الأفلام
+          </a>
+
+        </div>
 
       </div>
 
     </section>
 
 
-    <!-- ===================================================
-         MOVIES
-    ==================================================== -->
+    <!-- MOVIES -->
 
     <section
       id="movies"
@@ -156,10 +499,6 @@
           🎬 أحدث الأفلام
         </h2>
 
-        <a href="#movies">
-          عرض الكل
-        </a>
-
       </div>
 
       <div
@@ -168,7 +507,7 @@
       >
 
         <div class="loading">
-          جاري التحميل…
+          جاري تحميل الأفلام...
         </div>
 
       </div>
@@ -176,9 +515,7 @@
     </section>
 
 
-    <!-- ===================================================
-         SERIES
-    ==================================================== -->
+    <!-- SERIES -->
 
     <section
       id="series"
@@ -191,10 +528,6 @@
           📺 أحدث المسلسلات
         </h2>
 
-        <a href="#series">
-          عرض الكل
-        </a>
-
       </div>
 
       <div
@@ -203,7 +536,7 @@
       >
 
         <div class="loading">
-          جاري التحميل…
+          جاري تحميل المسلسلات...
         </div>
 
       </div>
@@ -211,29 +544,21 @@
     </section>
 
 
-    <!-- ===================================================
-         SEARCH
-    ==================================================== -->
+    <!-- SEARCH -->
 
     <section
       id="search"
       class="section"
     >
 
-      <div class="section-head">
-
-        <h2>
-          🔎 البحث
-        </h2>
-
-      </div>
+      <h2>
+        🔎 البحث
+      </h2>
 
       <input
         id="searchInput"
         class="search"
-        type="search"
-        placeholder="ابحث عن فيلم أو مسلسل…"
-        autocomplete="off"
+        placeholder="ابحث عن فيلم أو مسلسل..."
       >
 
       <div
@@ -244,9 +569,7 @@
     </section>
 
 
-    <!-- ===================================================
-         LOGIN
-    ==================================================== -->
+    <!-- LOGIN -->
 
     <section
       id="login"
@@ -259,7 +582,7 @@
           🔐 تسجيل الدخول
         </h2>
 
-        <p>
+        <p class="muted">
           سجل الدخول إلى حسابك في SOKA.
         </p>
 
@@ -267,27 +590,25 @@
 
           <input
             id="email"
-            name="email"
-            required
             type="email"
             autocomplete="email"
             placeholder="البريد الإلكتروني"
+            required
           >
 
           <input
             id="password"
-            name="password"
-            required
             type="password"
             autocomplete="current-password"
             placeholder="كلمة المرور"
+            required
           >
 
           <button
             class="btn"
             type="submit"
           >
-            دخول
+            تسجيل الدخول
           </button>
 
         </form>
@@ -296,47 +617,36 @@
         <hr>
 
 
-        <p class="muted">
-          ليس لديك حساب؟
-        </p>
-
-
-        <!-- =================================================
-             SIGNUP
-        ================================================== -->
+        <h3>
+          إنشاء حساب
+        </h3>
 
         <form id="signupForm">
 
           <input
             id="signupName"
-            name="full_name"
-            required
             type="text"
-            autocomplete="name"
             placeholder="الاسم"
+            required
           >
 
           <input
             id="signupEmail"
-            name="email"
-            required
             type="email"
-            autocomplete="email"
             placeholder="البريد الإلكتروني"
+            required
           >
 
           <input
             id="signupPassword"
-            name="password"
-            required
-            minlength="6"
             type="password"
-            autocomplete="new-password"
-            placeholder="كلمة المرور — 6 أحرف على الأقل"
+            minlength="6"
+            placeholder="كلمة المرور"
+            required
           >
 
           <button
-            class="btn secondary"
+            class="btn"
             type="submit"
           >
             إنشاء حساب
@@ -349,13 +659,11 @@
     </section>
 
 
-    <!-- ===================================================
-         DETAIL
-    ==================================================== -->
+    <!-- DETAIL -->
 
     <section
       id="detail"
-      class="section"
+      class="section hidden"
     >
 
       <div id="detailContent"></div>
@@ -363,13 +671,11 @@
     </section>
 
 
-    <!-- ===================================================
-         WATCH
-    ==================================================== -->
+    <!-- WATCH -->
 
     <section
       id="watch"
-      class="section"
+      class="section hidden"
     >
 
       <div id="watchContent"></div>
@@ -377,9 +683,7 @@
     </section>
 
 
-    <!-- ===================================================
-         ADMIN
-    ==================================================== -->
+    <!-- ADMIN -->
 
     <section
       id="admin"
@@ -395,29 +699,15 @@
       </div>
 
 
-      <!-- معلومات المدير -->
-
       <div
-        id="adminContent"
-        class="admin-content"
+        id="adminUser"
+        class="panel"
       >
-
-        <div class="panel">
-
-          <h3>
-            لوحة التحكم
-          </h3>
-
-          <p>
-            جاري تحميل لوحة التحكم…
-          </p>
-
-        </div>
-
+        جاري التحقق من صلاحيات المدير...
       </div>
 
 
-      <!-- الإحصائيات -->
+      <!-- STATS -->
 
       <div
         id="stats"
@@ -425,9 +715,7 @@
       ></div>
 
 
-      <!-- =================================================
-           ADMIN TABS
-      ================================================== -->
+      <!-- TABS -->
 
       <div class="admin-tabs">
 
@@ -463,9 +751,7 @@
       </div>
 
 
-      <!-- =================================================
-           MOVIES ADMIN
-      ================================================== -->
+      <!-- MOVIES ADMIN -->
 
       <div
         id="moviesAdmin"
@@ -473,9 +759,7 @@
       ></div>
 
 
-      <!-- =================================================
-           SERIES ADMIN
-      ================================================== -->
+      <!-- SERIES ADMIN -->
 
       <div
         id="seriesAdmin"
@@ -483,9 +767,7 @@
       ></div>
 
 
-      <!-- =================================================
-           SEASONS ADMIN
-      ================================================== -->
+      <!-- SEASONS ADMIN -->
 
       <div
         id="seasonsAdmin"
@@ -493,9 +775,7 @@
       ></div>
 
 
-      <!-- =================================================
-           EPISODES ADMIN
-      ================================================== -->
+      <!-- EPISODES ADMIN -->
 
       <div
         id="episodesAdmin"
@@ -507,14 +787,9 @@
   </main>
 
 
-  <!-- =====================================================
-       FOOTER
-  ====================================================== -->
-
   <footer>
 
     SOKA © 2026
-
     <br>
 
     للمحتوى المصرح بعرضه فقط.
@@ -522,23 +797,15 @@
   </footer>
 
 
-  <!-- =====================================================
-       SCRIPTS
-       
-       مهم جدًا:
-       1. config.js
-       2. Supabase
-       3. app.js
-  ====================================================== -->
+  <!-- ================= SCRIPTS ================= -->
 
-  <script src="./config.js"></script>
+  <script src="config.js"></script>
 
   <script
     src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
   ></script>
 
-  <script src="./app.js"></script>
+  <script src="app.js"></script>
 
 </body>
-
 </html>
