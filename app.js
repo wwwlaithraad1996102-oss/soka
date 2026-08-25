@@ -437,4 +437,142 @@
     'SOKA: تم تشغيل التطبيق بنجاح'
   );
 
-})();
+})();console.log('SOKA app.js loaded');
+
+window.addEventListener('error', function (event) {
+  console.error('SOKA ERROR:', event.error || event.message);
+
+  const toastEl = document.querySelector('#toast');
+
+  if (toastEl) {
+    toastEl.textContent =
+      'حدث خطأ في الموقع: ' +
+      (event.message || 'خطأ غير معروف');
+
+    toastEl.className = 'toast show error';
+  }
+});
+
+window.addEventListener('unhandledrejection', function (event) {
+  console.error('SOKA PROMISE ERROR:', event.reason);
+
+  const toastEl = document.querySelector('#toast');
+
+  if (toastEl) {
+    toastEl.textContent =
+      'حدث خطأ: ' +
+      (event.reason?.message || event.reason || 'خطأ غير معروف');
+
+    toastEl.className = 'toast show error';
+  }
+});
+
+start();async function loginUser(event) {
+	async function loginUser(event) {
+  event.preventDefault();
+
+  console.log('LOGIN BUTTON CLICKED');
+
+  if (!client) {
+    console.error('Supabase client is not initialized');
+
+    toast(
+      'خطأ: Supabase غير متصل. تحقق من config.js',
+      true
+    );
+
+    return;
+  }
+
+  const email =
+    $('#email')?.value.trim();
+
+  const password =
+    $('#password')?.value;
+
+  console.log('Email:', email);
+  console.log('Password entered:', !!password);
+
+  if (!email || !password) {
+    toast(
+      'أدخل البريد الإلكتروني وكلمة المرور.',
+      true
+    );
+
+    return;
+  }
+
+  toast('جاري تسجيل الدخول...');
+
+  try {
+
+    const result =
+      await client.auth.signInWithPassword({
+        email: email,
+        password: password
+      });
+
+    console.log('LOGIN RESULT:', result);
+
+    const {
+      data,
+      error
+    } = result;
+
+    if (error) {
+
+      console.error(
+        'SUPABASE LOGIN ERROR:',
+        error
+      );
+
+      toast(
+        'فشل تسجيل الدخول: ' +
+        error.message,
+        true
+      );
+
+      return;
+    }
+
+    if (!data?.user) {
+
+      toast(
+        'لم يتم العثور على المستخدم.',
+        true
+      );
+
+      return;
+    }
+
+    console.log(
+      'LOGIN SUCCESS:',
+      data.user
+    );
+
+    await setUser(
+      data.user
+    );
+
+    toast(
+      'تم تسجيل الدخول بنجاح ✅'
+    );
+
+    setTimeout(() => {
+      location.hash = '#home';
+    }, 500);
+
+  } catch (error) {
+
+    console.error(
+      'LOGIN EXCEPTION:',
+      error
+    );
+
+    toast(
+      'حدث خطأ أثناء تسجيل الدخول: ' +
+      (error?.message || error),
+      true
+    );
+  }
+}
