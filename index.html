@@ -2,23 +2,16 @@
 <html lang="ar" dir="rtl">
 
 <head>
-
   <meta charset="utf-8">
 
   <meta
     name="viewport"
-    content="width=device-width, initial-scale=1"
-  >
-
-  <meta
-    name="theme-color"
-    content="#08080b"
+    content="width=device-width,initial-scale=1"
   >
 
   <title>SOKA — تسجيل الدخول</title>
 
   <style>
-
     * {
       box-sizing: border-box;
     }
@@ -26,407 +19,197 @@
     body {
       margin: 0;
       min-height: 100vh;
-      background:
-        radial-gradient(
-          circle at top,
-          #222235 0%,
-          #0b0b10 45%,
-          #050507 100%
-        );
-
+      background: #08080b;
       color: #fff;
-
-      font-family:
-        Arial,
-        Tahoma,
-        sans-serif;
-
+      font-family: Arial, sans-serif;
       display: flex;
-      align-items: center;
       justify-content: center;
-
+      align-items: center;
       padding: 20px;
     }
 
-    .container {
+    .box {
       width: 100%;
       max-width: 430px;
+      background: #15151b;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px #000;
     }
 
-    .logo {
+    h1 {
       text-align: center;
-      font-size: 48px;
-      font-weight: 900;
-      letter-spacing: 4px;
-      margin-bottom: 8px;
+      font-size: 42px;
+      margin: 0 0 10px;
     }
 
-    .subtitle {
+    h2 {
       text-align: center;
-      color: #aaa;
       margin-bottom: 25px;
-    }
-
-    .card {
-      background: rgba(20, 20, 27, .96);
-      border: 1px solid #292933;
-      border-radius: 18px;
-      padding: 25px;
-
-      box-shadow:
-        0 20px 60px rgba(0,0,0,.45);
-    }
-
-    .tabs {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 20px;
-    }
-
-    .tabs button {
-      flex: 1;
-      padding: 12px;
-      border: 0;
-      border-radius: 10px;
-
-      background: #18181f;
-      color: #aaa;
-
-      cursor: pointer;
-      font-size: 15px;
-    }
-
-    .tabs button.active {
-      background: #fff;
-      color: #000;
-      font-weight: bold;
-    }
-
-    form {
-      display: none;
-    }
-
-    form.active {
-      display: block;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 7px;
-      color: #ddd;
-      font-size: 14px;
     }
 
     input {
       width: 100%;
       padding: 14px;
-
+      margin: 7px 0;
+      border: 1px solid #333;
       border-radius: 10px;
-      border: 1px solid #33333e;
-
-      background: #0d0d12;
-      color: #fff;
-
-      outline: none;
-
-      margin-bottom: 15px;
-
-      font-size: 15px;
+      background: #0d0d11;
+      color: white;
+      font-size: 16px;
     }
 
-    input:focus {
-      border-color: #777;
-    }
-
-    .btn {
+    button {
       width: 100%;
+      padding: 14px;
+      margin-top: 10px;
       border: 0;
       border-radius: 10px;
-
-      padding: 14px;
-
-      background: #fff;
-      color: #000;
-
+      background: #e50914;
+      color: white;
       font-size: 16px;
-      font-weight: bold;
-
       cursor: pointer;
     }
 
-    .btn:disabled {
-      opacity: .5;
-      cursor: wait;
+    .secondary {
+      background: #333;
     }
 
     .message {
-      display: none;
-
-      margin-top: 15px;
+      margin: 15px 0;
       padding: 12px;
-
       border-radius: 10px;
-
-      background: #17171e;
-
-      color: #ddd;
-
+      background: #24242b;
+      text-align: center;
       line-height: 1.6;
-      font-size: 14px;
-    }
-
-    .message.show {
-      display: block;
     }
 
     .message.error {
-      background: #351719;
-      color: #ffb8b8;
-      border: 1px solid #652326;
+      background: #55151a;
     }
 
     .message.success {
-      background: #15321f;
-      color: #b8ffce;
-      border: 1px solid #245f38;
+      background: #14532d;
     }
 
-    .account {
-      display: none;
+    .user {
       text-align: center;
-    }
-
-    .account.show {
-      display: block;
-    }
-
-    .account-email {
       margin: 15px 0;
-      padding: 15px;
-
-      background: #101016;
-      border-radius: 10px;
-
-      color: #ddd;
-
-      word-break: break-all;
+      line-height: 1.8;
     }
 
-    .logout {
-      background: #2b2b34;
-      color: #fff;
-      margin-top: 10px;
+    .hidden {
+      display: none !important;
     }
 
-    .status {
+    hr {
+      border: 0;
+      border-top: 1px solid #333;
+      margin: 30px 0;
+    }
+
+    .muted {
+      color: #aaa;
       text-align: center;
-      color: #777;
-      font-size: 12px;
-      margin-top: 20px;
     }
-
   </style>
-
 </head>
 
 <body>
 
-<div class="container">
+  <div class="box">
 
-  <div class="logo">
-    SOKA
-  </div>
+    <h1>SOKA</h1>
 
-  <div class="subtitle">
-    منصة SOKA
-  </div>
+    <p class="muted">
+      منصة الأفلام والمسلسلات
+    </p>
 
-  <div class="card">
-
-    <!-- AUTH -->
-
-    <div id="authBox">
-
-      <div class="tabs">
-
-        <button
-          id="loginTab"
-          class="active"
-          type="button"
-        >
-          تسجيل الدخول
-        </button>
-
-        <button
-          id="signupTab"
-          type="button"
-        >
-          إنشاء حساب
-        </button>
-
-      </div>
-
-
-      <!-- LOGIN -->
-
-      <form
-        id="loginForm"
-        class="active"
-      >
-
-        <label>
-          البريد الإلكتروني
-        </label>
-
-        <input
-          id="loginEmail"
-          type="email"
-          autocomplete="email"
-          placeholder="example@gmail.com"
-          required
-        >
-
-        <label>
-          كلمة المرور
-        </label>
-
-        <input
-          id="loginPassword"
-          type="password"
-          autocomplete="current-password"
-          placeholder="كلمة المرور"
-          required
-        >
-
-        <button
-          id="loginButton"
-          class="btn"
-          type="submit"
-        >
-          تسجيل الدخول
-        </button>
-
-      </form>
-
-
-      <!-- SIGNUP -->
-
-      <form
-        id="signupForm"
-      >
-
-        <label>
-          الاسم
-        </label>
-
-        <input
-          id="signupName"
-          type="text"
-          placeholder="اسمك"
-          required
-        >
-
-        <label>
-          البريد الإلكتروني
-        </label>
-
-        <input
-          id="signupEmail"
-          type="email"
-          autocomplete="email"
-          placeholder="example@gmail.com"
-          required
-        >
-
-        <label>
-          كلمة المرور
-        </label>
-
-        <input
-          id="signupPassword"
-          type="password"
-          autocomplete="new-password"
-          minlength="6"
-          placeholder="6 أحرف على الأقل"
-          required
-        >
-
-        <button
-          id="signupButton"
-          class="btn"
-          type="submit"
-        >
-          إنشاء الحساب
-        </button>
-
-      </form>
-
-
-      <div
-        id="message"
-        class="message"
-      ></div>
-
+    <div id="message" class="message">
+      جاري الاتصال بـ Supabase…
     </div>
 
+    <div id="userInfo" class="user">
+      لم يتم تسجيل الدخول
+    </div>
 
-    <!-- ACCOUNT -->
+    <form id="loginForm">
 
-    <div
-      id="accountBox"
-      class="account"
-    >
+      <h2>🔐 تسجيل الدخول</h2>
 
-      <h2>
-        👋 أهلاً بك في SOKA
-      </h2>
-
-      <p>
-        تم تسجيل الدخول بنجاح.
-      </p>
-
-      <div
-        id="accountEmail"
-        class="account-email"
-      ></div>
-
-      <button
-        id="logoutButton"
-        class="btn logout"
-        type="button"
+      <input
+        id="email"
+        type="email"
+        placeholder="البريد الإلكتروني"
+        autocomplete="email"
+        required
       >
-        تسجيل الخروج
+
+      <input
+        id="password"
+        type="password"
+        placeholder="كلمة المرور"
+        autocomplete="current-password"
+        required
+      >
+
+      <button type="submit">
+        تسجيل الدخول
       </button>
 
-      <div
-        id="accountMessage"
-        class="message"
-      ></div>
+    </form>
 
-    </div>
+    <hr>
+
+    <form id="signupForm">
+
+      <h2>📝 إنشاء حساب</h2>
+
+      <input
+        id="signupName"
+        type="text"
+        placeholder="الاسم"
+        required
+      >
+
+      <input
+        id="signupEmail"
+        type="email"
+        placeholder="البريد الإلكتروني"
+        required
+      >
+
+      <input
+        id="signupPassword"
+        type="password"
+        placeholder="كلمة المرور"
+        minlength="6"
+        required
+      >
+
+      <button
+        class="secondary"
+        type="submit"
+      >
+        إنشاء حساب
+      </button>
+
+    </form>
+
+    <button
+      id="logoutBtn"
+      class="hidden"
+    >
+      تسجيل الخروج
+    </button>
 
   </div>
 
-  <div class="status">
-    SOKA Authentication Test
-  </div>
+  <script src="config.js"></script>
 
-</div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-
-<!-- SUPABASE CONFIG -->
-
-<script src="./config.js"></script>
-
-
-<!-- SUPABASE -->
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-
-<!-- SOKA APP -->
-
-<script src="./app.js"></script>
+  <script src="app.js"></script>
 
 </body>
 
