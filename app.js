@@ -1,6 +1,11 @@
 (() => {
   'use strict';
 
+  // =========================================================
+  // SOKA
+  // Supabase + Login + Signup + Admin Dashboard
+  // =========================================================
+
   const cfg = window.SOKA_CONFIG || {};
 
   const client =
@@ -16,14 +21,14 @@
   let currentUser = null;
   let isAdmin = false;
 
-  let movies = [];
-  let series = [];
+  // =========================================================
+  // Helpers
+  // =========================================================
 
   const $ = selector =>
     document.querySelector(selector);
 
   function toast(message, error = false) {
-
     const el = $('#toast');
 
     if (!el) {
@@ -32,129 +37,292 @@
     }
 
     el.textContent = message;
-
     el.className =
-      'toast show' +
-      (error ? ' error' : '');
+      'toast show ' +
+      (error ? 'error' : '');
 
     setTimeout(() => {
       el.className = 'toast';
-    }, 4000);
+    }, 3500);
   }
 
-  function esc(value = '') {
-
-    return String(value)
-      .replace(/[&<>'"]/g, char => ({
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        "'": '&#39;',
-        '"': '&quot;'
-      }[char]));
-  }
-
-
-  // =====================================================
-  // ROUTING
-  // =====================================================
-
-  function showSection(id) {
-
+  function showSections() {
     document
       .querySelectorAll('main > section')
       .forEach(section => {
-
-        section.classList.add('hidden');
-
+        section.classList.remove('hidden');
       });
-
-    const section =
-      document.getElementById(id);
-
-    if (section) {
-      section.classList.remove('hidden');
-    }
   }
 
-
-  function route() {
-
-    const hash =
-      location.hash || '#home';
-
-    const id =
-      hash.substring(1);
-
-    if (id === 'admin') {
-
-      if (!currentUser) {
-
-        toast(
-          'يجب تسجيل الدخول أولًا.',
-          true
-        );
-
-        location.hash = '#login';
-
-        return;
-      }
-
-      if (!isAdmin) {
-
-        toast(
-          'هذا الحساب ليس مديرًا.',
-          true
-        );
-
-        location.hash = '#home';
-
-        return;
-      }
-
-      showSection('admin');
-
-      loadAdmin();
-
-      return;
-    }
-
-    if (
-      id === 'login'
-    ) {
-
-      showSection('login');
-
-      return;
-    }
-
-    if (
-      id === 'movies'
-    ) {
-
-      showSection('movies');
-
-      return;
-    }
-
-    if (
-      id === 'series'
-    ) {
-
-      showSection('series');
-
-      return;
-    }
-
-    showSection('home');
+  function showOnly(id) {
+    document
+      .querySelectorAll('main > section')
+      .forEach(section => {
+        if (section.id === id) {
+          section.classList.remove('hidden');
+        } else {
+          section.classList.add('hidden');
+        }
+      });
   }
 
-
-  // =====================================================
+  // =========================================================
   // AUTH
-  // =====================================================
+  // =========================================================
 
   async function checkSession() {
+
+    if (!client) {
+      console.error(
+        'SOKA: Supabase client غير موجود'
+      );
+
+      toast(
+        'خطأ في إعداد Supabase.',
+        true
+      );
+
+      return;
+    }
+
+    try {
+
+      const result =
+        await client.auth.getSession();
+
+      console.log(
+        'SOKA SESSION:',
+        result
+      );
+
+      if (result.error) {
+        console.error(
+          'Session error:',
+          result.error
+        );
+
+        return;
+      }
+
+      await setUser(
+        result.data?.session?.user || null
+      );
+
+      client.auth.onAuthStateChange(
+        async (_event, session) => {
+
+          console.log(
+            'AUTH EVENT:',
+            _event,
+            session
+          );
+
+          await setUser(
+            session?.user || null
+          );
+        }
+      );
+
+    } catch (error) {
+
+      console.error(
+        'checkSession error:',
+        error
+      );
+
+      toast(
+        'تعذر التحقق من تسجيل الدخول.',
+        true
+      );
+    }
+  }
+
+  // =========================================================
+  // SET USER
+  // =========================================================
+
+  async function setUser(user) {
+
+    currentUser = user;
+    isAdmin = false;
+
+    const authNav =
+      $('#authNav');
+
+    const logoutBtn =
+      $('#logoutBtn');
+
+    const adminNav =
+      $('#adminNav');
+
+    const admin =
+      $('#admin');
+
+    // -----------------------------------------
+    // لا يوجد مستخدم
+    // -----------------------------------------
+
+    if (!user) {
+
+      console.log(
+        'SOKA: لا يوجد مستخدم مسجل'
+      );
+
+      authNav?.classList.remove(
+        'hidden'
+      );
+
+      if (authNav) {
+        authNav.textContent =
+          'تسجيل الدخول';
+
+        authNav.href =
+          '#login';
+      }
+
+      logoutBtn?.classList.add(
+        'hidden'
+      );
+
+      adminNav?.classList.add(
+        'hidden'
+      );
+
+      admin?.classList.add(
+        'hidden'
+      );
+
+      return;
+    }
+
+    // -----------------------------------------
+    // المستخدم موجود
+    // -----------------------------------------
+
+    console.log(
+      'SOKA USER:',
+      user
+    );
+
+    if (authNav) {
+
+      authNav.textContent =
+        'حسابي';
+
+      authNav.href =
+        '#home';
+    }
+
+    logoutBtn?.classList.remove(
+      'hidden'
+    );
+
+    // -----------------------------------------
+    // قراءة profile
+    // -----------------------------------------
+
+    try {
+
+      const result =
+        await client
+          .from('profiles')
+          .select('id,role,email')
+          .eq('id', user.id)
+          .maybeSingle();
+
+      console.log(
+        'SOKA PROFILE RESULT:',
+        result
+      );
+
+      if (result.error) {
+
+        console.error(
+          'PROFILE ERROR:',
+          result.error
+        );
+
+        toast(
+          'تم تسجيل الدخول، لكن تعذر قراءة صلاحية المدير. تحقق من RLS في profiles.',
+          true
+        );
+
+      } else if (result.data) {
+
+        console.log(
+          'SOKA PROFILE:',
+          result.data
+        );
+
+        if (
+          String(result.data.role)
+            .toLowerCase()
+            .trim() === 'admin'
+        ) {
+
+          isAdmin = true;
+
+          console.log(
+            'SOKA: ADMIN DETECTED'
+          );
+
+          adminNav?.classList.remove(
+            'hidden'
+          );
+
+          admin?.classList.remove(
+            'hidden'
+          );
+
+          toast(
+            'تم تسجيل الدخول كمدير. لوحة التحكم متاحة الآن.'
+          );
+
+        } else {
+
+          console.log(
+            'SOKA: USER ROLE =',
+            result.data.role
+          );
+
+          adminNav?.classList.add(
+            'hidden'
+          );
+        }
+
+      } else {
+
+        console.warn(
+          'SOKA: لا يوجد profile لهذا المستخدم'
+        );
+
+        toast(
+          'الحساب موجود لكن لا يوجد له سجل في profiles.',
+          true
+        );
+      }
+
+    } catch (error) {
+
+      console.error(
+        'setUser profile error:',
+        error
+      );
+
+      toast(
+        'حدث خطأ أثناء التحقق من صلاحية المدير.',
+        true
+      );
+    }
+  }
+
+  // =========================================================
+  // LOGIN
+  // =========================================================
+
+  async function loginUser(event) {
+
+    event.preventDefault();
 
     if (!client) {
 
@@ -166,186 +334,6 @@
       return;
     }
 
-    const result =
-      await client.auth.getSession();
-
-    if (result.error) {
-
-      console.error(
-        result.error
-      );
-
-      return;
-    }
-
-    await handleUser(
-      result.data.session?.user || null
-    );
-
-    client.auth.onAuthStateChange(
-      async (_event, session) => {
-
-        await handleUser(
-          session?.user || null
-        );
-
-        route();
-
-      }
-    );
-  }
-
-
-  async function handleUser(user) {
-
-    currentUser = user;
-    isAdmin = false;
-
-    const adminNav =
-      $('#adminNav');
-
-    const authNav =
-      $('#authNav');
-
-    const logoutBtn =
-      $('#logoutBtn');
-
-    if (!user) {
-
-      adminNav?.classList.add(
-        'hidden'
-      );
-
-      logoutBtn?.classList.add(
-        'hidden'
-      );
-
-      if (authNav) {
-
-        authNav.textContent =
-          'تسجيل الدخول';
-
-        authNav.href =
-          '#login';
-
-      }
-
-      return;
-    }
-
-
-    if (authNav) {
-
-      authNav.textContent =
-        'حسابي';
-
-      authNav.href =
-        '#home';
-
-    }
-
-    logoutBtn?.classList.remove(
-      'hidden'
-    );
-
-
-    // ================================================
-    // التحقق من profiles
-    // ================================================
-
-    const result =
-      await client
-        .from('profiles')
-        .select('id, role')
-        .eq('id', user.id)
-        .maybeSingle();
-
-
-    console.log(
-      'SOKA PROFILE:',
-      result.data
-    );
-
-    console.log(
-      'SOKA PROFILE ERROR:',
-      result.error
-    );
-
-
-    if (result.error) {
-
-      console.error(
-        'Profile error:',
-        result.error
-      );
-
-      toast(
-        'تم تسجيل الدخول، لكن تعذر قراءة صلاحيات الحساب.',
-        true
-      );
-
-      return;
-    }
-
-
-    if (
-      result.data &&
-      result.data.role === 'admin'
-    ) {
-
-      isAdmin = true;
-
-      adminNav?.classList.remove(
-        'hidden'
-      );
-
-      console.log(
-        'SOKA ADMIN: نعم'
-      );
-
-      toast(
-        'مرحبًا بك أيها المدير 👑'
-      );
-
-    } else {
-
-      console.log(
-        'SOKA ADMIN: لا'
-      );
-
-    }
-
-
-    const adminUser =
-      $('#adminUser');
-
-    if (adminUser) {
-
-      adminUser.innerHTML = `
-        <strong>
-          👤 ${esc(user.email)}
-        </strong>
-
-        <br>
-
-        الصلاحية:
-        <strong>
-          ${isAdmin ? 'ADMIN 👑' : 'USER'}
-        </strong>
-      `;
-
-    }
-  }
-
-
-  // =====================================================
-  // LOGIN
-  // =====================================================
-
-  async function login(event) {
-
-    event.preventDefault();
-
     const email =
       $('#email')?.value.trim();
 
@@ -355,13 +343,12 @@
     if (!email || !password) {
 
       toast(
-        'أدخل البريد وكلمة المرور.',
+        'أدخل البريد الإلكتروني وكلمة المرور.',
         true
       );
 
       return;
     }
-
 
     const button =
       event.submitter;
@@ -369,11 +356,14 @@
     if (button) {
       button.disabled = true;
       button.textContent =
-        'جاري الدخول…';
+        'جاري الدخول...';
     }
 
-
     try {
+
+      console.log(
+        'SOKA: محاولة تسجيل الدخول'
+      );
 
       const result =
         await client.auth.signInWithPassword({
@@ -381,10 +371,15 @@
           password
         });
 
+      console.log(
+        'LOGIN RESULT:',
+        result
+      );
 
       if (result.error) {
 
         console.error(
+          'LOGIN ERROR:',
           result.error
         );
 
@@ -396,35 +391,40 @@
         return;
       }
 
-
-      await handleUser(
-        result.data.user
+      await setUser(
+        result.data?.user || null
       );
-
 
       toast(
         'تم تسجيل الدخول بنجاح.'
       );
 
+      location.hash =
+        '#home';
 
-      if (isAdmin) {
+      // محاولة إظهار لوحة التحكم إذا كان Admin
+      setTimeout(() => {
 
-        location.hash =
-          '#admin';
+        if (isAdmin) {
+          const nav =
+            $('#adminNav');
 
-      } else {
+          nav?.classList.remove(
+            'hidden'
+          );
+        }
 
-        location.hash =
-          '#home';
-
-      }
-
+      }, 300);
 
     } catch (error) {
 
-      console.error(error);
+      console.error(
+        'LOGIN EXCEPTION:',
+        error
+      );
 
       toast(
+        error.message ||
         'حدث خطأ أثناء تسجيل الدخول.',
         true
       );
@@ -432,26 +432,30 @@
     } finally {
 
       if (button) {
-
-        button.disabled =
-          false;
-
+        button.disabled = false;
         button.textContent =
-          'تسجيل الدخول';
-
+          'دخول';
       }
-
     }
   }
 
-
-  // =====================================================
+  // =========================================================
   // SIGNUP
-  // =====================================================
+  // =========================================================
 
-  async function signup(event) {
+  async function signupUser(event) {
 
     event.preventDefault();
+
+    if (!client) {
+
+      toast(
+        'Supabase غير متصل.',
+        true
+      );
+
+      return;
+    }
 
     const name =
       $('#signupName')?.value.trim();
@@ -461,7 +465,6 @@
 
     const password =
       $('#signupPassword')?.value;
-
 
     if (!name || !email || !password) {
 
@@ -473,14 +476,12 @@
       return;
     }
 
-
     try {
 
       const result =
         await client.auth.signUp({
 
           email,
-
           password,
 
           options: {
@@ -491,12 +492,12 @@
 
         });
 
+      console.log(
+        'SIGNUP RESULT:',
+        result
+      );
 
       if (result.error) {
-
-        console.error(
-          result.error
-        );
 
         toast(
           result.error.message,
@@ -506,10 +507,9 @@
         return;
       }
 
+      if (result.data?.session) {
 
-      if (result.data.session) {
-
-        await handleUser(
+        await setUser(
           result.data.user
         );
 
@@ -523,906 +523,317 @@
       } else {
 
         toast(
-          'تم إنشاء الحساب. تحقق من بريدك الإلكتروني إذا كان تأكيد البريد مفعّلًا.'
+          'تم إنشاء الحساب. تحقق من البريد الإلكتروني إذا كان التحقق مفعّلًا.'
         );
-
       }
 
     } catch (error) {
 
-      console.error(error);
+      console.error(
+        'SIGNUP ERROR:',
+        error
+      );
 
       toast(
+        error.message ||
         'حدث خطأ أثناء إنشاء الحساب.',
         true
       );
-
     }
   }
 
-
-  // =====================================================
+  // =========================================================
   // LOGOUT
-  // =====================================================
+  // =========================================================
 
-  async function logout() {
+  async function logoutUser() {
+
+    if (!client) return;
 
     const result =
       await client.auth.signOut();
 
-    if (result.error) {
-
-      toast(
-        result.error.message,
-        true
-      );
-
-      return;
-    }
+    console.log(
+      'LOGOUT:',
+      result
+    );
 
     currentUser = null;
     isAdmin = false;
 
-    $('#adminNav')?.classList.add(
-      'hidden'
-    );
+    $('#adminNav')
+      ?.classList.add('hidden');
 
-    $('#logoutBtn')?.classList.add(
-      'hidden'
-    );
+    $('#logoutBtn')
+      ?.classList.add('hidden');
+
+    location.hash =
+      '#home';
 
     toast(
       'تم تسجيل الخروج.'
     );
-
-    location.hash =
-      '#home';
   }
 
-
-  // =====================================================
-  // MOVIES
-  // =====================================================
-
-  async function loadMovies() {
-
-    const result =
-      await client
-        .from('movies')
-        .select('*')
-        .eq('is_published', true)
-        .order(
-          'created_at',
-          {
-            ascending: false
-          }
-        );
-
-
-    if (result.error) {
-
-      console.error(
-        result.error
-      );
-
-      return;
-    }
-
-
-    movies =
-      result.data || [];
-
-
-    const grid =
-      $('#movieGrid');
-
-    if (!grid) return;
-
-
-    if (!movies.length) {
-
-      grid.innerHTML = `
-        <div class="empty">
-          لا توجد أفلام منشورة حاليًا.
-        </div>
-      `;
-
-      return;
-    }
-
-
-    grid.innerHTML =
-      movies
-        .map(movie => {
-
-          const poster =
-            movie.poster_url ||
-            'https://placehold.co/600x900/111116/ffffff?text=SOKA';
-
-          return `
-            <article class="card">
-
-              <img
-                src="${esc(poster)}"
-                alt="${esc(movie.title)}"
-              >
-
-              <div class="card-body">
-
-                <h3>
-                  ${esc(movie.title)}
-                </h3>
-
-                <p>
-                  ${esc(movie.year || '')}
-                  ${
-                    movie.genre
-                      ? ' • ' +
-                        esc(movie.genre)
-                      : ''
-                  }
-                </p>
-
-              </div>
-
-            </article>
-          `;
-
-        })
-        .join('');
-  }
-
-
-  // =====================================================
-  // SERIES
-  // =====================================================
-
-  async function loadSeries() {
-
-    const result =
-      await client
-        .from('series')
-        .select('*')
-        .eq('is_published', true)
-        .order(
-          'created_at',
-          {
-            ascending: false
-          }
-        );
-
-
-    if (result.error) {
-
-      console.error(
-        result.error
-      );
-
-      return;
-    }
-
-
-    series =
-      result.data || [];
-
-
-    const grid =
-      $('#seriesGrid');
-
-    if (!grid) return;
-
-
-    if (!series.length) {
-
-      grid.innerHTML = `
-        <div class="empty">
-          لا توجد مسلسلات منشورة حاليًا.
-        </div>
-      `;
-
-      return;
-    }
-
-
-    grid.innerHTML =
-      series
-        .map(show => {
-
-          const poster =
-            show.poster_url ||
-            'https://placehold.co/600x900/111116/ffffff?text=SOKA';
-
-          return `
-            <article class="card">
-
-              <img
-                src="${esc(poster)}"
-                alt="${esc(show.title)}"
-              >
-
-              <div class="card-body">
-
-                <h3>
-                  ${esc(show.title)}
-                </h3>
-
-                <p>
-                  ${esc(show.year || '')}
-                  ${
-                    show.genre
-                      ? ' • ' +
-                        esc(show.genre)
-                      : ''
-                  }
-                </p>
-
-              </div>
-
-            </article>
-          `;
-
-        })
-        .join('');
-  }
-
-
-  // =====================================================
+  // =========================================================
   // ADMIN
-  // =====================================================
+  // =========================================================
 
-  async function loadAdmin() {
+  async function renderAdmin() {
+
+    if (!currentUser) {
+
+      toast(
+        'يجب تسجيل الدخول أولًا.',
+        true
+      );
+
+      location.hash =
+        '#login';
+
+      return;
+    }
 
     if (!isAdmin) {
 
       toast(
-        'ليس لديك صلاحية المدير.',
+        'هذا الحساب ليس Admin.',
         true
       );
+
+      location.hash =
+        '#home';
 
       return;
     }
 
+    showOnly('admin');
 
-    await loadAdminStats();
+    const admin =
+      $('#admin');
 
-    await loadAdminMovies();
-
-    await loadAdminSeries();
-
-  }
-
-
-  async function loadAdminStats() {
-
-    const movieCount =
-      await client
-        .from('movies')
-        .select('*', {
-          count: 'exact',
-          head: true
-        });
-
-
-    const seriesCount =
-      await client
-        .from('series')
-        .select('*', {
-          count: 'exact',
-          head: true
-        });
-
+    admin?.classList.remove(
+      'hidden'
+    );
 
     const stats =
       $('#stats');
 
-    if (!stats) return;
+    if (stats) {
 
+      stats.innerHTML = `
+        <div class="stat">
+          <strong>✓</strong>
+          <span>مدير SOKA</span>
+        </div>
 
-    stats.innerHTML = `
+        <div class="stat">
+          <strong>🎬</strong>
+          <span>الأفلام</span>
+        </div>
 
-      <div class="stat">
+        <div class="stat">
+          <strong>📺</strong>
+          <span>المسلسلات</span>
+        </div>
 
-        <strong>
-          ${movieCount.count || 0}
-        </strong>
+        <div class="stat">
+          <strong>📥</strong>
+          <span>TVmaze</span>
+        </div>
+      `;
+    }
 
-        <span>
-          الأفلام
-        </span>
+    const movies =
+      $('#moviesAdmin');
 
-      </div>
+    if (movies) {
 
-      <div class="stat">
+      movies.innerHTML = `
+        <div class="panel">
+          <h3>🎬 إدارة الأفلام</h3>
 
-        <strong>
-          ${seriesCount.count || 0}
-        </strong>
+          <p>
+            تم تسجيل الدخول بصلاحية المدير بنجاح.
+          </p>
 
-        <span>
-          المسلسلات
-        </span>
+          <p class="muted">
+            سنضيف هنا إضافة وتعديل وحذف الأفلام.
+          </p>
+        </div>
+      `;
+    }
 
-      </div>
+    const series =
+      $('#seriesAdmin');
 
-    `;
+    if (series) {
+
+      series.innerHTML = `
+        <div class="panel">
+          <h3>📺 إدارة المسلسلات</h3>
+
+          <p>
+            لوحة المسلسلات جاهزة.
+          </p>
+
+          <p class="muted">
+            سيتم إضافة TVmaze في الخطوة التالية.
+          </p>
+        </div>
+      `;
+    }
+
+    const seasons =
+      $('#seasonsAdmin');
+
+    if (seasons) {
+
+      seasons.innerHTML = `
+        <div class="panel">
+          <h3>📚 المواسم</h3>
+          <p>إدارة مواسم المسلسلات.</p>
+        </div>
+      `;
+    }
+
+    const episodes =
+      $('#episodesAdmin');
+
+    if (episodes) {
+
+      episodes.innerHTML = `
+        <div class="panel">
+          <h3>🎞️ الحلقات</h3>
+          <p>إدارة حلقات المسلسلات.</p>
+        </div>
+      `;
+    }
+
+    console.log(
+      'SOKA ADMIN DASHBOARD OPENED'
+    );
   }
 
+  // =========================================================
+  // ROUTER
+  // =========================================================
 
-  // =====================================================
-  // ADD MOVIE
-  // =====================================================
+  async function route() {
 
-  async function addMovie(event) {
+    const hash =
+      location.hash ||
+      '#home';
 
-    event.preventDefault();
-
-
-    if (!isAdmin) {
-
-      toast(
-        'غير مصرح.',
-        true
-      );
-
-      return;
-    }
-
-
-    const form =
-      event.target;
-
-    const fd =
-      new FormData(form);
-
-
-    const data = {
-
-      title:
-        fd.get('title'),
-
-      description:
-        fd.get('description') || null,
-
-      poster_url:
-        fd.get('poster_url') || null,
-
-      backdrop_url:
-        fd.get('backdrop_url') || null,
-
-      video_url:
-        fd.get('video_url') || null,
-
-      year:
-        fd.get('year')
-          ? Number(fd.get('year'))
-          : null,
-
-      genre:
-        fd.get('genre') || null,
-
-      country:
-        fd.get('country') || null,
-
-      is_published:
-        fd.has('is_published')
-
-    };
-
-
-    const result =
-      await client
-        .from('movies')
-        .insert(data);
-
-
-    if (result.error) {
-
-      console.error(
-        result.error
-      );
-
-      toast(
-        result.error.message,
-        true
-      );
-
-      return;
-    }
-
-
-    toast(
-      '✅ تمت إضافة الفيلم.'
+    console.log(
+      'SOKA ROUTE:',
+      hash,
+      'ADMIN:',
+      isAdmin
     );
 
+    if (hash === '#admin') {
 
-    form.reset();
+      await renderAdmin();
 
+      return;
+    }
 
-    await loadMovies();
+    showSections();
 
-    await loadAdmin();
+    if (
+      hash === '#login'
+    ) {
 
+      showOnly('login');
+
+      return;
+    }
+
+    if (
+      hash === '#home'
+    ) {
+
+      showSections();
+
+      return;
+    }
   }
 
-
-  // =====================================================
-  // ADD SERIES
-  // =====================================================
-
-  async function addSeries(event) {
-
-    event.preventDefault();
-
-
-    if (!isAdmin) {
-
-      toast(
-        'غير مصرح.',
-        true
-      );
-
-      return;
-    }
-
-
-    const form =
-      event.target;
-
-    const fd =
-      new FormData(form);
-
-
-    const data = {
-
-      title:
-        fd.get('title'),
-
-      description:
-        fd.get('description') || null,
-
-      poster_url:
-        fd.get('poster_url') || null,
-
-      backdrop_url:
-        fd.get('backdrop_url') || null,
-
-      year:
-        fd.get('year')
-          ? Number(fd.get('year'))
-          : null,
-
-      genre:
-        fd.get('genre') || null,
-
-      country:
-        fd.get('country') || null,
-
-      is_published:
-        fd.has('is_published')
-
-    };
-
-
-    const result =
-      await client
-        .from('series')
-        .insert(data);
-
-
-    if (result.error) {
-
-      console.error(
-        result.error
-      );
-
-      toast(
-        result.error.message,
-        true
-      );
-
-      return;
-    }
-
-
-    toast(
-      '✅ تمت إضافة المسلسل.'
-    );
-
-
-    form.reset();
-
-
-    await loadSeries();
-
-    await loadAdmin();
-
-  }
-
-
-  // =====================================================
-  // ADMIN MOVIES LIST
-  // =====================================================
-
-  async function loadAdminMovies() {
-
-    const result =
-      await client
-        .from('movies')
-        .select('*')
-        .order(
-          'created_at',
-          {
-            ascending: false
-          }
-        );
-
-
-    const box =
-      $('#adminMovies');
-
-    if (!box) return;
-
-
-    if (result.error) {
-
-      box.innerHTML = `
-        <div class="empty">
-          ${esc(
-            result.error.message
-          )}
-        </div>
-      `;
-
-      return;
-    }
-
-
-    const data =
-      result.data || [];
-
-
-    if (!data.length) {
-
-      box.innerHTML = `
-        <div class="empty">
-          لا توجد أفلام.
-        </div>
-      `;
-
-      return;
-    }
-
-
-    box.innerHTML =
-      data
-        .map(movie => `
-
-          <div class="admin-item">
-
-            <div>
-
-              <strong>
-                ${esc(movie.title)}
-              </strong>
-
-              <br>
-
-              <small>
-                ${
-                  movie.is_published
-                    ? '🟢 منشور'
-                    : '🔴 مخفي'
-                }
-              </small>
-
-            </div>
-
-            <button
-              class="danger"
-              onclick="window.deleteMovie('${movie.id}')"
-            >
-              حذف
-            </button>
-
-          </div>
-
-        `)
-        .join('');
-  }
-
-
-  // =====================================================
-  // DELETE MOVIE
-  // =====================================================
-
-  window.deleteMovie =
-    async function(id) {
-
-      if (!isAdmin) {
-
-        toast(
-          'غير مصرح.',
-          true
-        );
-
-        return;
-      }
-
-
-      if (
-        !confirm(
-          'هل تريد حذف هذا الفيلم؟'
-        )
-      ) {
-        return;
-      }
-
-
-      const result =
-        await client
-          .from('movies')
-          .delete()
-          .eq('id', id);
-
-
-      if (result.error) {
-
-        toast(
-          result.error.message,
-          true
-        );
-
-        return;
-      }
-
-
-      toast(
-        'تم حذف الفيلم.'
-      );
-
-
-      await loadMovies();
-
-      await loadAdmin();
-
-    };
-
-
-  // =====================================================
-  // ADMIN SERIES LIST
-  // =====================================================
-
-  async function loadAdminSeries() {
-
-    const result =
-      await client
-        .from('series')
-        .select('*')
-        .order(
-          'created_at',
-          {
-            ascending: false
-          }
-        );
-
-
-    const box =
-      $('#adminSeries');
-
-    if (!box) return;
-
-
-    if (result.error) {
-
-      box.innerHTML = `
-        <div class="empty">
-          ${esc(
-            result.error.message
-          )}
-        </div>
-      `;
-
-      return;
-    }
-
-
-    const data =
-      result.data || [];
-
-
-    if (!data.length) {
-
-      box.innerHTML = `
-        <div class="empty">
-          لا توجد مسلسلات.
-        </div>
-      `;
-
-      return;
-    }
-
-
-    box.innerHTML =
-      data
-        .map(show => `
-
-          <div class="admin-item">
-
-            <div>
-
-              <strong>
-                ${esc(show.title)}
-              </strong>
-
-              <br>
-
-              <small>
-                ${
-                  show.is_published
-                    ? '🟢 منشور'
-                    : '🔴 مخفي'
-                }
-              </small>
-
-            </div>
-
-            <button
-              class="danger"
-              onclick="window.deleteSeries('${show.id}')"
-            >
-              حذف
-            </button>
-
-          </div>
-
-        `)
-        .join('');
-  }
-
-
-  // =====================================================
-  // DELETE SERIES
-  // =====================================================
-
-  window.deleteSeries =
-    async function(id) {
-
-      if (!isAdmin) {
-
-        toast(
-          'غير مصرح.',
-          true
-        );
-
-        return;
-      }
-
-
-      if (
-        !confirm(
-          'هل تريد حذف هذا المسلسل؟'
-        )
-      ) {
-        return;
-      }
-
-
-      const result =
-        await client
-          .from('series')
-          .delete()
-          .eq('id', id);
-
-
-      if (result.error) {
-
-        toast(
-          result.error.message,
-          true
-        );
-
-        return;
-      }
-
-
-      toast(
-        'تم حذف المسلسل.'
-      );
-
-
-      await loadSeries();
-
-      await loadAdmin();
-
-    };
-
-
-  // =====================================================
+  // =========================================================
   // EVENTS
-  // =====================================================
+  // =========================================================
 
   function setupEvents() {
 
     $('#loginForm')
       ?.addEventListener(
         'submit',
-        login
+        loginUser
       );
-
 
     $('#signupForm')
       ?.addEventListener(
         'submit',
-        signup
+        signupUser
       );
-
 
     $('#logoutBtn')
       ?.addEventListener(
         'click',
-        logout
+        logoutUser
       );
-
-
-    $('#movieForm')
-      ?.addEventListener(
-        'submit',
-        addMovie
-      );
-
-
-    $('#seriesForm')
-      ?.addEventListener(
-        'submit',
-        addSeries
-      );
-
 
     window.addEventListener(
       'hashchange',
       route
     );
-
   }
 
-
-  // =====================================================
+  // =========================================================
   // START
-  // =====================================================
+  // =========================================================
 
   async function start() {
 
     console.log(
-      'SOKA START'
+      '================================'
     );
 
+    console.log(
+      'SOKA STARTING...'
+    );
+
+    console.log(
+      'CONFIG:',
+      cfg
+    );
+
+    console.log(
+      'SUPABASE:',
+      !!client
+    );
+
+    console.log(
+      '================================'
+    );
+
+    setupEvents();
 
     if (!client) {
 
       toast(
-        'خطأ: Supabase غير مهيأ.',
+        'فشل الاتصال بـ Supabase.',
         true
       );
 
       return;
     }
 
-
-    setupEvents();
-
-
     await checkSession();
 
-
-    await loadMovies();
-
-    await loadSeries();
-
-
-    route();
-
+    await route();
   }
-
 
   start();
 
