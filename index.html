@@ -1,209 +1,953 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
-
 <head>
   <meta charset="utf-8">
 
   <meta
     name="viewport"
-    content="width=device-width,initial-scale=1"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
   >
 
-  <title>SOKA — تسجيل الدخول</title>
+  <meta
+    name="theme-color"
+    content="#08080b"
+  >
+
+  <meta
+    name="description"
+    content="SOKA - منصة أفلام ومسلسلات"
+  >
+
+  <title>SOKA — أفلام ومسلسلات</title>
 
   <style>
     * {
       box-sizing: border-box;
     }
 
+    html {
+      scroll-behavior: smooth;
+    }
+
     body {
       margin: 0;
-      min-height: 100vh;
       background: #08080b;
       color: #fff;
-      font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
+      font-family:
+        Arial,
+        Tahoma,
+        sans-serif;
     }
 
-    .box {
-      width: 100%;
-      max-width: 430px;
-      background: #15151b;
-      padding: 30px;
-      border-radius: 20px;
-      box-shadow: 0 20px 60px #000;
+    a {
+      color: inherit;
+      text-decoration: none;
     }
 
-    h1 {
-      text-align: center;
-      font-size: 42px;
-      margin: 0 0 10px;
-    }
-
-    h2 {
-      text-align: center;
-      margin-bottom: 25px;
-    }
-
-    input {
-      width: 100%;
-      padding: 14px;
-      margin: 7px 0;
-      border: 1px solid #333;
-      border-radius: 10px;
-      background: #0d0d11;
-      color: white;
-      font-size: 16px;
+    button,
+    input,
+    textarea,
+    select {
+      font: inherit;
     }
 
     button {
-      width: 100%;
-      padding: 14px;
-      margin-top: 10px;
-      border: 0;
-      border-radius: 10px;
-      background: #e50914;
-      color: white;
-      font-size: 16px;
       cursor: pointer;
-    }
-
-    .secondary {
-      background: #333;
-    }
-
-    .message {
-      margin: 15px 0;
-      padding: 12px;
-      border-radius: 10px;
-      background: #24242b;
-      text-align: center;
-      line-height: 1.6;
-    }
-
-    .message.error {
-      background: #55151a;
-    }
-
-    .message.success {
-      background: #14532d;
-    }
-
-    .user {
-      text-align: center;
-      margin: 15px 0;
-      line-height: 1.8;
     }
 
     .hidden {
       display: none !important;
     }
 
-    hr {
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      gap: 20px;
+
+      padding: 15px 20px;
+
+      background: rgba(8, 8, 11, .96);
+      border-bottom: 1px solid #222;
+      backdrop-filter: blur(15px);
+    }
+
+    .brand {
+      font-size: 27px;
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: 1px;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    nav a,
+    nav button {
       border: 0;
-      border-top: 1px solid #333;
-      margin: 30px 0;
+      background: transparent;
+      color: #ddd;
+      padding: 9px 12px;
+      border-radius: 8px;
+    }
+
+    nav a:hover,
+    nav button:hover {
+      background: #1b1b22;
+      color: #fff;
+    }
+
+    .login {
+      background: #fff !important;
+      color: #000 !important;
+    }
+
+    .hero {
+      min-height: 390px;
+
+      display: flex;
+      align-items: center;
+
+      padding: 40px 25px;
+
+      background:
+        linear-gradient(
+          90deg,
+          #08080b 0%,
+          rgba(8,8,11,.85) 45%,
+          rgba(8,8,11,.25) 100%
+        ),
+        radial-gradient(
+          circle at 75% 30%,
+          #31313c,
+          #08080b 55%
+        );
+    }
+
+    .hero-content {
+      width: 100%;
+      max-width: 700px;
+    }
+
+    .badge {
+      display: inline-block;
+
+      padding: 6px 10px;
+
+      border-radius: 6px;
+
+      background: #fff;
+      color: #000;
+
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .hero h1 {
+      margin: 15px 0 10px;
+      font-size: clamp(30px, 6vw, 60px);
+      line-height: 1.1;
+    }
+
+    .hero p {
+      color: #bbb;
+      font-size: 18px;
+      line-height: 1.8;
+    }
+
+    .btn {
+      display: inline-block;
+
+      border: 0;
+      border-radius: 9px;
+
+      padding: 12px 18px;
+
+      background: #fff;
+      color: #000;
+
+      font-weight: 800;
+    }
+
+    .btn:hover {
+      opacity: .85;
+    }
+
+    .btn.secondary {
+      background: #292932;
+      color: #fff;
+    }
+
+    .btn.danger,
+    .danger {
+      background: #b42318 !important;
+      color: #fff !important;
+    }
+
+    main {
+      min-height: 70vh;
+    }
+
+    .section {
+      padding: 30px 20px;
+      max-width: 1400px;
+      margin: auto;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      gap: 15px;
+
+      margin-bottom: 20px;
+    }
+
+    .section-head h2 {
+      margin: 0;
+    }
+
+    .grid {
+      display: grid;
+
+      grid-template-columns:
+        repeat(
+          auto-fill,
+          minmax(160px, 1fr)
+        );
+
+      gap: 18px;
+    }
+
+    .card {
+      overflow: hidden;
+
+      background: #121217;
+      border: 1px solid #24242c;
+      border-radius: 12px;
+
+      transition:
+        transform .2s,
+        border-color .2s;
+
+      cursor: pointer;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: #555;
+    }
+
+    .card img {
+      width: 100%;
+      aspect-ratio: 2 / 3;
+      display: block;
+      object-fit: cover;
+      background: #1b1b22;
+    }
+
+    .card-body {
+      padding: 12px;
+    }
+
+    .card-body h3 {
+      margin: 0 0 8px;
+      font-size: 16px;
+    }
+
+    .card-body p {
+      margin: 0;
+      color: #999;
+      font-size: 13px;
+    }
+
+    .empty,
+    .loading {
+      padding: 30px;
+      text-align: center;
+      color: #888;
+      background: #111116;
+      border-radius: 10px;
+    }
+
+    .auth-card {
+      max-width: 500px;
+      margin: 40px auto;
+      padding: 25px;
+
+      background: #121217;
+      border: 1px solid #27272f;
+      border-radius: 15px;
+    }
+
+    .auth-card h2 {
+      margin-top: 0;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+
+      padding: 12px 13px;
+      margin-bottom: 12px;
+
+      border: 1px solid #303039;
+      border-radius: 8px;
+
+      background: #0d0d11;
+      color: #fff;
+
+      outline: none;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: #777;
+    }
+
+    textarea {
+      min-height: 110px;
+      resize: vertical;
+    }
+
+    .auth-card .btn {
+      width: 100%;
+      margin-bottom: 10px;
     }
 
     .muted {
-      color: #aaa;
+      color: #888;
+    }
+
+    .toast {
+      position: fixed;
+
+      top: 80px;
+      right: 20px;
+
+      z-index: 99999;
+
+      min-width: 260px;
+      max-width: calc(100vw - 40px);
+
+      padding: 13px 16px;
+
+      background: #1c1c23;
+      color: #fff;
+
+      border: 1px solid #333;
+      border-radius: 9px;
+
+      opacity: 0;
+      transform: translateY(-10px);
+
+      pointer-events: none;
+
+      transition: .2s;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .toast.error {
+      background: #401919;
+      border-color: #743333;
+    }
+
+    .admin-header {
+      margin-bottom: 20px;
+    }
+
+    .stats {
+      display: grid;
+
+      grid-template-columns:
+        repeat(
+          auto-fit,
+          minmax(150px, 1fr)
+        );
+
+      gap: 15px;
+
+      margin-bottom: 25px;
+    }
+
+    .stat {
+      padding: 20px;
+
+      background: #121217;
+      border: 1px solid #292930;
+      border-radius: 12px;
+
       text-align: center;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 32px;
+      margin-bottom: 5px;
+    }
+
+    .stat span {
+      color: #999;
+    }
+
+    .admin-tabs {
+      display: flex;
+      gap: 8px;
+
+      margin-bottom: 20px;
+
+      overflow-x: auto;
+    }
+
+    .admin-tabs button {
+      white-space: nowrap;
+
+      padding: 11px 16px;
+
+      border: 1px solid #303039;
+      border-radius: 8px;
+
+      background: #15151b;
+      color: #ddd;
+    }
+
+    .admin-tabs button.active {
+      background: #fff;
+      color: #000;
+    }
+
+    .panel {
+      margin-bottom: 20px;
+
+      padding: 20px;
+
+      background: #121217;
+      border: 1px solid #292930;
+      border-radius: 12px;
+    }
+
+    .panel h3 {
+      margin-top: 0;
+    }
+
+    .admin-form {
+      max-width: 700px;
+    }
+
+    .two {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .check {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      margin-bottom: 15px;
+
+      color: #ddd;
+    }
+
+    .check input {
+      width: auto;
+      margin: 0;
+    }
+
+    .admin-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .admin-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      gap: 15px;
+
+      padding: 12px;
+
+      background: #0d0d11;
+      border: 1px solid #25252c;
+      border-radius: 8px;
+    }
+
+    .admin-item-info {
+      min-width: 0;
+    }
+
+    .admin-item-info strong {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .admin-actions {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .small-btn {
+      border: 0;
+      border-radius: 7px;
+
+      padding: 8px 11px;
+
+      background: #292932;
+      color: #fff;
+    }
+
+    .detail-card {
+      display: grid;
+
+      grid-template-columns:
+        250px 1fr;
+
+      gap: 25px;
+
+      padding: 20px;
+
+      background: #121217;
+      border-radius: 15px;
+    }
+
+    .detail-card img {
+      width: 100%;
+      border-radius: 10px;
+    }
+
+    .detail-card h1 {
+      font-size: 38px;
+    }
+
+    footer {
+      padding: 30px 20px;
+      text-align: center;
+      color: #777;
+      border-top: 1px solid #222;
+      margin-top: 30px;
+    }
+
+    @media (max-width: 700px) {
+
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      nav {
+        width: 100%;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+      }
+
+      nav a,
+      nav button {
+        white-space: nowrap;
+      }
+
+      .hero {
+        min-height: 330px;
+      }
+
+      .grid {
+        grid-template-columns:
+          repeat(
+            2,
+            minmax(0, 1fr)
+          );
+      }
+
+      .two {
+        grid-template-columns: 1fr;
+        gap: 0;
+      }
+
+      .detail-card {
+        grid-template-columns: 1fr;
+      }
+
+      .detail-card img {
+        max-width: 280px;
+        margin: auto;
+      }
+
+      .detail-card h1 {
+        font-size: 28px;
+      }
+
+      .admin-item {
+        align-items: flex-start;
+        flex-direction: column;
+      }
     }
   </style>
 </head>
 
 <body>
 
-  <div class="box">
+  <div id="toast" class="toast"></div>
 
-    <h1>SOKA</h1>
+  <!-- HEADER -->
+  <header class="topbar">
 
-    <p class="muted">
-      منصة الأفلام والمسلسلات
-    </p>
+    <a class="brand" href="#home">
+      SOKA
+    </a>
 
-    <div id="message" class="message">
-      جاري الاتصال بـ Supabase…
-    </div>
+    <nav>
 
-    <div id="userInfo" class="user">
-      لم يتم تسجيل الدخول
-    </div>
+      <a href="#home">
+        الرئيسية
+      </a>
 
-    <form id="loginForm">
+      <a href="#movies">
+        🎬 الأفلام
+      </a>
 
-      <h2>🔐 تسجيل الدخول</h2>
+      <a href="#series">
+        📺 المسلسلات
+      </a>
 
-      <input
-        id="email"
-        type="email"
-        placeholder="البريد الإلكتروني"
-        autocomplete="email"
-        required
+      <a href="#search">
+        🔎 البحث
+      </a>
+
+      <a
+        id="adminNav"
+        class="hidden"
+        href="#admin"
       >
+        ⚙️ لوحة التحكم
+      </a>
 
-      <input
-        id="password"
-        type="password"
-        placeholder="كلمة المرور"
-        autocomplete="current-password"
-        required
+      <a
+        id="authNav"
+        class="login"
+        href="#login"
       >
-
-      <button type="submit">
         تسجيل الدخول
-      </button>
-
-    </form>
-
-    <hr>
-
-    <form id="signupForm">
-
-      <h2>📝 إنشاء حساب</h2>
-
-      <input
-        id="signupName"
-        type="text"
-        placeholder="الاسم"
-        required
-      >
-
-      <input
-        id="signupEmail"
-        type="email"
-        placeholder="البريد الإلكتروني"
-        required
-      >
-
-      <input
-        id="signupPassword"
-        type="password"
-        placeholder="كلمة المرور"
-        minlength="6"
-        required
-      >
+      </a>
 
       <button
-        class="secondary"
-        type="submit"
+        id="logoutBtn"
+        class="hidden"
       >
-        إنشاء حساب
+        خروج
       </button>
 
-    </form>
+    </nav>
 
-    <button
-      id="logoutBtn"
-      class="hidden"
+  </header>
+
+
+  <main>
+
+    <!-- HOME -->
+    <section
+      id="home"
+      class="hero"
     >
-      تسجيل الخروج
-    </button>
 
-  </div>
+      <div class="hero-content">
+
+        <span class="badge">
+          SOKA
+        </span>
+
+        <h1>
+          عالمك السينمائي في مكان واحد
+        </h1>
+
+        <p>
+          أفلام ومسلسلات في واجهة واحدة.
+        </p>
+
+        <a
+          class="btn"
+          href="#movies"
+        >
+          استكشف الآن
+        </a>
+
+      </div>
+
+    </section>
+
+
+    <!-- MOVIES -->
+    <section
+      id="movies"
+      class="section"
+    >
+
+      <div class="section-head">
+
+        <h2>
+          🎬 الأفلام
+        </h2>
+
+      </div>
+
+      <div
+        id="movieGrid"
+        class="grid"
+      >
+
+        <div class="loading">
+          جاري تحميل الأفلام…
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- SERIES -->
+    <section
+      id="series"
+      class="section"
+    >
+
+      <div class="section-head">
+
+        <h2>
+          📺 المسلسلات
+        </h2>
+
+      </div>
+
+      <div
+        id="seriesGrid"
+        class="grid"
+      >
+
+        <div class="loading">
+          جاري تحميل المسلسلات…
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- SEARCH -->
+    <section
+      id="search"
+      class="section"
+    >
+
+      <div class="section-head">
+
+        <h2>
+          🔎 البحث
+        </h2>
+
+      </div>
+
+      <input
+        id="searchInput"
+        placeholder="ابحث عن فيلم أو مسلسل…"
+      >
+
+      <div
+        id="searchGrid"
+        class="grid"
+      ></div>
+
+    </section>
+
+
+    <!-- LOGIN -->
+    <section
+      id="login"
+      class="section"
+    >
+
+      <div class="auth-card">
+
+        <h2>
+          🔐 تسجيل الدخول
+        </h2>
+
+        <p class="muted">
+          سجّل الدخول إلى حساب SOKA.
+        </p>
+
+        <form id="loginForm">
+
+          <input
+            id="email"
+            required
+            type="email"
+            autocomplete="email"
+            placeholder="البريد الإلكتروني"
+          >
+
+          <input
+            id="password"
+            required
+            type="password"
+            autocomplete="current-password"
+            placeholder="كلمة المرور"
+          >
+
+          <button
+            class="btn"
+            type="submit"
+          >
+            دخول
+          </button>
+
+        </form>
+
+
+        <hr style="border-color:#292930;margin:25px 0;">
+
+
+        <h3>
+          إنشاء حساب
+        </h3>
+
+        <form id="signupForm">
+
+          <input
+            id="signupName"
+            required
+            type="text"
+            placeholder="الاسم"
+          >
+
+          <input
+            id="signupEmail"
+            required
+            type="email"
+            placeholder="البريد الإلكتروني"
+          >
+
+          <input
+            id="signupPassword"
+            required
+            minlength="6"
+            type="password"
+            placeholder="كلمة المرور"
+          >
+
+          <button
+            class="btn secondary"
+            type="submit"
+          >
+            إنشاء حساب
+          </button>
+
+        </form>
+
+      </div>
+
+    </section>
+
+
+    <!-- DETAIL -->
+    <section
+      id="detail"
+      class="section hidden"
+    >
+
+      <div id="detailContent"></div>
+
+    </section>
+
+
+    <!-- ADMIN -->
+    <section
+      id="admin"
+      class="section hidden"
+    >
+
+      <div class="admin-header">
+
+        <h2>
+          ⚙️ لوحة تحكم SOKA
+        </h2>
+
+        <p class="muted">
+          إدارة الأفلام والمسلسلات.
+        </p>
+
+      </div>
+
+
+      <!-- STATS -->
+      <div
+        id="stats"
+        class="stats"
+      ></div>
+
+
+      <!-- TABS -->
+      <div class="admin-tabs">
+
+        <button
+          data-tab="moviesAdmin"
+          class="active"
+        >
+          🎬 الأفلام
+        </button>
+
+        <button
+          data-tab="seriesAdmin"
+        >
+          📺 المسلسلات
+        </button>
+
+      </div>
+
+
+      <!-- MOVIES ADMIN -->
+      <div
+        id="moviesAdmin"
+        class="admin-panel"
+      ></div>
+
+
+      <!-- SERIES ADMIN -->
+      <div
+        id="seriesAdmin"
+        class="admin-panel hidden"
+      ></div>
+
+    </section>
+
+  </main>
+
+
+  <footer>
+    SOKA © 2026
+  </footer>
+
+
+  <!--
+    لا تغيّر config.js الذي يعمل عندك
+  -->
 
   <script src="config.js"></script>
 
@@ -212,5 +956,4 @@
   <script src="app.js"></script>
 
 </body>
-
 </html>
