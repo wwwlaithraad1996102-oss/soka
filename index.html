@@ -1,497 +1,383 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
+
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
 
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  >
+  <meta name="viewport"
+        content="width=device-width,initial-scale=1,viewport-fit=cover">
 
-  <meta
-    name="theme-color"
-    content="#08080b"
-  >
+  <meta name="theme-color" content="#08080b">
+
+  <meta name="description"
+        content="SOKA — منصة أفلام ومسلسلات للمحتوى المصرح بعرضه.">
 
   <title>SOKA — أفلام ومسلسلات</title>
 
+  <link rel="stylesheet" href="style.css">
+
   <style>
-    * {
-      box-sizing: border-box;
-    }
 
-    body {
-      margin: 0;
-      background: #08080b;
-      color: #fff;
-      font-family: Arial, sans-serif;
-    }
-
-    a {
-      color: inherit;
-      text-decoration: none;
-    }
-
-    button,
-    input,
-    textarea,
-    select {
-      font: inherit;
-    }
+    /* ================================
+       أساسيات
+    ================================= */
 
     .hidden {
       display: none !important;
     }
 
-    .topbar {
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-      background: #111116;
-      border-bottom: 1px solid #292932;
-      padding: 15px 20px;
+    .loading {
+      padding: 30px;
+      text-align: center;
+      opacity: .7;
     }
 
-    .nav {
-      max-width: 1200px;
-      margin: auto;
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      flex-wrap: wrap;
+    .empty {
+      padding: 30px;
+      text-align: center;
+      opacity: .6;
     }
 
-    .brand {
-      font-size: 28px;
-      font-weight: bold;
-      color: #ff1744;
-      margin-left: auto;
-    }
-
-    .nav-links {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .nav-links a,
-    .nav-links button {
-      background: #1a1a21;
-      border: 1px solid #30303a;
-      color: #fff;
-      padding: 9px 14px;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-
-    .nav-links a:hover,
-    .nav-links button:hover {
-      background: #ff1744;
-    }
-
-    main {
-      max-width: 1200px;
-      margin: auto;
+    .error-box {
       padding: 20px;
+      background: #7d2020;
+      border-radius: 12px;
+      margin: 15px 0;
     }
 
-    .hero {
-      min-height: 300px;
-      display: flex;
-      align-items: center;
-      padding: 40px;
-      border-radius: 18px;
-      background:
-        linear-gradient(
-          135deg,
-          #191922,
-          #0d0d12
-        );
-      margin-bottom: 25px;
-    }
-
-    .hero h1 {
-      font-size: 42px;
-      margin: 10px 0;
-    }
-
-    .hero p {
-      color: #bbb;
-    }
-
-    .section {
-      margin-bottom: 30px;
-    }
-
-    .section-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 15px;
-    }
+    /* ================================
+       بطاقات المحتوى
+    ================================= */
 
     .grid {
       display: grid;
-      grid-template-columns:
-        repeat(auto-fill, minmax(170px, 1fr));
+      grid-template-columns: repeat(auto-fill,minmax(180px,1fr));
       gap: 18px;
     }
 
-    .card {
-      background: #111116;
-      border: 1px solid #292932;
-      border-radius: 12px;
+    .content-card {
+      background: #111118;
+      border: 1px solid #25252d;
+      border-radius: 14px;
       overflow: hidden;
-      cursor: pointer;
-      transition: .2s;
     }
 
-    .card:hover {
-      transform: translateY(-4px);
-      border-color: #ff1744;
-    }
-
-    .card img {
+    .content-card img {
       width: 100%;
-      height: 250px;
+      aspect-ratio: 2 / 3;
       object-fit: cover;
       display: block;
+      background: #181820;
     }
 
-    .card-body {
+    .content-info {
       padding: 12px;
     }
 
-    .card-body h3 {
+    .content-info h3 {
       margin: 0 0 8px;
-      font-size: 17px;
     }
 
-    .muted {
-      color: #999;
+    .content-info p {
+      opacity: .7;
+      font-size: 14px;
     }
 
-    .btn {
-      background: #ff1744;
-      color: white;
-      border: 0;
-      padding: 12px 20px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
-    }
+    /* ================================
+       لوحة التحكم
+    ================================= */
 
-    .btn:hover {
-      background: #e9143d;
-    }
-
-    .auth-card,
-    .panel,
-    .detail-card,
-    .watch-box {
-      background: #111116;
-      border: 1px solid #292932;
-      border-radius: 15px;
-      padding: 25px;
-      margin-bottom: 20px;
-    }
-
-    .auth-card {
-      max-width: 500px;
-      margin: 40px auto;
-    }
-
-    input,
-    textarea,
-    select {
-      width: 100%;
-      background: #09090d;
-      color: white;
-      border: 1px solid #33333d;
-      border-radius: 8px;
-      padding: 12px;
-      margin-bottom: 12px;
-      outline: none;
-    }
-
-    input:focus,
-    textarea:focus,
-    select:focus {
-      border-color: #ff1744;
-    }
-
-    textarea {
-      min-height: 100px;
-      resize: vertical;
-    }
-
-    .stats {
-      display: grid;
-      grid-template-columns:
-        repeat(auto-fit, minmax(150px, 1fr));
-      gap: 15px;
-      margin-bottom: 20px;
-    }
-
-    .stat {
-      background: #111116;
-      border: 1px solid #292932;
+    .admin-wrapper {
+      background: #111118;
+      border-radius: 18px;
       padding: 20px;
-      border-radius: 12px;
-      text-align: center;
-    }
-
-    .stat strong {
-      display: block;
-      font-size: 30px;
-      color: #ff1744;
+      margin-top: 20px;
     }
 
     .admin-tabs {
       display: flex;
-      gap: 8px;
       flex-wrap: wrap;
-      margin-bottom: 20px;
+      gap: 10px;
+      margin: 20px 0;
     }
 
     .admin-tabs button {
-      border: 1px solid #33333d;
-      background: #15151c;
-      color: white;
-      padding: 10px 15px;
-      border-radius: 8px;
+      border: 0;
+      border-radius: 10px;
+      padding: 12px 18px;
       cursor: pointer;
+      background: #202027;
+      color: #fff;
     }
 
     .admin-tabs button.active {
       background: #ff1744;
     }
 
+    .admin-panel {
+      margin-top: 20px;
+    }
+
     .admin-form {
-      display: grid;
-      gap: 8px;
-    }
-
-    .two {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    .admin-list {
-      display: grid;
-      gap: 10px;
-    }
-
-    .admin-list > div {
-      background: #09090d;
+      background: #181820;
       border: 1px solid #292932;
-      padding: 12px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
+      padding: 18px;
+      border-radius: 14px;
+      margin-bottom: 25px;
     }
 
-    .admin-list b {
-      flex: 1;
+    .admin-form h3 {
+      margin-top: 0;
     }
 
-    .danger {
-      background: #b00020;
-      color: white;
-      border: 0;
-      padding: 8px 12px;
-      border-radius: 7px;
-      cursor: pointer;
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2,minmax(0,1fr));
+      gap: 12px;
     }
 
-    .toast {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      z-index: 9999;
-      background: #202027;
-      color: white;
-      padding: 14px 18px;
-      border-radius: 10px;
-      display: none;
-      max-width: 90%;
+    .form-grid .full {
+      grid-column: 1 / -1;
     }
 
-    .toast.show {
-      display: block;
-    }
-
-    .toast.error {
-      background: #a00020;
-    }
-
-    .loading,
-    .empty {
-      background: #111116;
-      border: 1px solid #292932;
-      padding: 25px;
-      border-radius: 10px;
-      color: #aaa;
-    }
-
-    video {
+    .admin-form input,
+    .admin-form textarea,
+    .admin-form select {
       width: 100%;
-      max-height: 70vh;
-      background: black;
-      border-radius: 10px;
+      box-sizing: border-box;
+      padding: 12px;
+      border-radius: 9px;
+      border: 1px solid #34343e;
+      background: #0d0d12;
+      color: #fff;
+      font-size: 15px;
     }
 
-    footer {
+    .admin-form textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .check-row {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      align-items: center;
+      padding: 10px 0;
+    }
+
+    .check-row label {
+      display: flex;
+      gap: 7px;
+      align-items: center;
+    }
+
+    .admin-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 15px;
+    }
+
+    .btn-danger {
+      background: #a71932 !important;
+    }
+
+    .btn-secondary {
+      background: #33333d !important;
+    }
+
+    .admin-table-wrapper {
+      overflow-x: auto;
+    }
+
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 700px;
+    }
+
+    .admin-table th,
+    .admin-table td {
+      border-bottom: 1px solid #292932;
+      padding: 12px;
+      text-align: right;
+    }
+
+    .admin-table th {
+      background: #181820;
+    }
+
+    .admin-table img {
+      width: 55px;
+      height: 75px;
+      object-fit: cover;
+      border-radius: 7px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4,1fr);
+      gap: 12px;
+    }
+
+    .stat-card {
+      background: #181820;
+      border: 1px solid #292932;
+      border-radius: 13px;
+      padding: 18px;
       text-align: center;
-      color: #777;
-      padding: 30px;
-      border-top: 1px solid #222;
-      margin-top: 40px;
     }
 
-    @media (max-width: 600px) {
+    .stat-card strong {
+      display: block;
+      font-size: 28px;
+      margin-top: 8px;
+    }
 
-      .brand {
-        width: 100%;
-        text-align: center;
-      }
+    /* ================================
+       TVmaze
+    ================================= */
 
-      .nav {
-        justify-content: center;
-      }
+    .tvmaze-result {
+      background: #181820;
+      border-radius: 14px;
+      padding: 15px;
+      margin-top: 15px;
+      display: flex;
+      gap: 15px;
+      align-items: flex-start;
+    }
 
-      .nav-links {
-        justify-content: center;
-      }
+    .tvmaze-result img {
+      width: 90px;
+      height: 130px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
 
-      .hero h1 {
-        font-size: 30px;
-      }
+    /* ================================
+       الهاتف
+    ================================= */
 
-      .two {
+    @media(max-width:700px) {
+
+      .form-grid {
         grid-template-columns: 1fr;
       }
 
-      .card img {
-        height: 220px;
+      .form-grid .full {
+        grid-column: auto;
       }
+
+      .stats {
+        grid-template-columns: repeat(2,1fr);
+      }
+
+      .grid {
+        grid-template-columns: repeat(2,minmax(0,1fr));
+      }
+
     }
+
   </style>
 </head>
+
 
 <body>
 
   <div id="toast" class="toast"></div>
 
-  <!-- ================= HEADER ================= -->
+
+  <!-- ================================
+       HEADER
+  ================================= -->
 
   <header class="topbar">
 
-    <div class="nav">
+    <a class="brand" href="#home">
+      SOKA
+    </a>
 
-      <a href="#home" class="brand">
-        SOKA
+    <nav>
+
+      <a href="#home">
+        الرئيسية
       </a>
 
-      <nav class="nav-links">
+      <a href="#movies">
+        الأفلام
+      </a>
 
-        <a href="#home">
-          الرئيسية
-        </a>
+      <a href="#series">
+        المسلسلات
+      </a>
 
-        <a href="#movies">
-          🎬 الأفلام
-        </a>
+      <a href="#search">
+        البحث
+      </a>
 
-        <a href="#series">
-          📺 المسلسلات
-        </a>
+      <a id="adminNav"
+         class="hidden"
+         href="#admin">
+        ⚙️ لوحة التحكم
+      </a>
 
-        <a href="#search">
-          🔎 البحث
-        </a>
+      <a id="authNav"
+         class="login"
+         href="#login">
+        تسجيل الدخول
+      </a>
 
-        <a
-          id="authNav"
-          href="#login"
-        >
-          🔐 تسجيل الدخول
-        </a>
+      <button id="logoutBtn"
+              class="ghost hidden"
+              type="button">
+        🚪 خروج
+      </button>
 
-        <a
-          id="adminNav"
-          href="#admin"
-          class="hidden"
-        >
-          ⚙️ لوحة التحكم
-        </a>
-
-        <button
-          id="logoutBtn"
-          class="hidden"
-          type="button"
-        >
-          🚪 تسجيل الخروج
-        </button>
-
-      </nav>
-
-    </div>
+    </nav>
 
   </header>
 
 
-  <!-- ================= MAIN ================= -->
-
   <main>
 
-    <!-- HOME -->
 
-    <section
-      id="home"
-      class="section"
-    >
+    <!-- ================================
+         HOME
+    ================================= -->
 
-      <div class="hero">
+    <section id="home" class="hero">
 
-        <div>
+      <div class="hero-content">
 
-          <span>
-            SOKA ORIGINAL
-          </span>
+        <span class="badge">
+          SOKA ORIGINAL
+        </span>
 
-          <h1>
-            عالمك السينمائي في مكان واحد
-          </h1>
+        <h1>
+          عالمك السينمائي في مكان واحد
+        </h1>
 
-          <p>
-            أفلام ومسلسلات ومواسم وحلقات
-            في منصة واحدة.
-          </p>
+        <p>
+          أفلام ومسلسلات ومواسم وحلقات في منصة واحدة.
+        </p>
 
-          <a
-            href="#movies"
-            class="btn"
-          >
-            استكشف الأفلام
-          </a>
-
-        </div>
+        <a class="btn"
+           href="#movies">
+          استكشف الأفلام
+        </a>
 
       </div>
 
     </section>
 
 
-    <!-- MOVIES -->
+    <!-- ================================
+         MOVIES
+    ================================= -->
 
-    <section
-      id="movies"
-      class="section"
-    >
+    <section class="section" id="movies">
 
       <div class="section-head">
 
@@ -501,13 +387,11 @@
 
       </div>
 
-      <div
-        id="movieGrid"
-        class="grid"
-      >
+      <div id="movieGrid"
+           class="grid">
 
         <div class="loading">
-          جاري تحميل الأفلام...
+          جاري تحميل الأفلام…
         </div>
 
       </div>
@@ -515,12 +399,11 @@
     </section>
 
 
-    <!-- SERIES -->
+    <!-- ================================
+         SERIES
+    ================================= -->
 
-    <section
-      id="series"
-      class="section"
-    >
+    <section class="section" id="series">
 
       <div class="section-head">
 
@@ -530,13 +413,11 @@
 
       </div>
 
-      <div
-        id="seriesGrid"
-        class="grid"
-      >
+      <div id="seriesGrid"
+           class="grid">
 
         <div class="loading">
-          جاري تحميل المسلسلات...
+          جاري تحميل المسلسلات…
         </div>
 
       </div>
@@ -544,37 +425,38 @@
     </section>
 
 
-    <!-- SEARCH -->
+    <!-- ================================
+         SEARCH
+    ================================= -->
 
-    <section
-      id="search"
-      class="section"
-    >
+    <section class="section"
+             id="search">
 
-      <h2>
-        🔎 البحث
-      </h2>
+      <div class="section-head">
 
-      <input
-        id="searchInput"
-        class="search"
-        placeholder="ابحث عن فيلم أو مسلسل..."
-      >
+        <h2>
+          🔎 البحث
+        </h2>
 
-      <div
-        id="searchGrid"
-        class="grid"
-      ></div>
+      </div>
+
+      <input id="searchInput"
+             class="search"
+             placeholder="ابحث عن فيلم أو مسلسل…">
+
+      <div id="searchGrid"
+           class="grid">
+      </div>
 
     </section>
 
 
-    <!-- LOGIN -->
+    <!-- ================================
+         LOGIN
+    ================================= -->
 
-    <section
-      id="login"
-      class="section"
-    >
+    <section class="section"
+             id="login">
 
       <div class="auth-card">
 
@@ -582,33 +464,29 @@
           🔐 تسجيل الدخول
         </h2>
 
-        <p class="muted">
-          سجل الدخول إلى حسابك في SOKA.
+        <p>
+          ادخل إلى حسابك في SOKA.
         </p>
 
         <form id="loginForm">
 
           <input
             id="email"
+            required
             type="email"
             autocomplete="email"
-            placeholder="البريد الإلكتروني"
-            required
-          >
+            placeholder="البريد الإلكتروني">
 
           <input
             id="password"
+            required
             type="password"
             autocomplete="current-password"
-            placeholder="كلمة المرور"
-            required
-          >
+            placeholder="كلمة المرور">
 
-          <button
-            class="btn"
-            type="submit"
-          >
-            تسجيل الدخول
+          <button class="btn"
+                  type="submit">
+            دخول
           </button>
 
         </form>
@@ -625,30 +503,25 @@
 
           <input
             id="signupName"
-            type="text"
-            placeholder="الاسم"
             required
-          >
+            type="text"
+            placeholder="الاسم">
 
           <input
             id="signupEmail"
-            type="email"
-            placeholder="البريد الإلكتروني"
             required
-          >
+            type="email"
+            placeholder="البريد الإلكتروني">
 
           <input
             id="signupPassword"
-            type="password"
-            minlength="6"
-            placeholder="كلمة المرور"
             required
-          >
+            minlength="6"
+            type="password"
+            placeholder="كلمة المرور">
 
-          <button
-            class="btn"
-            type="submit"
-          >
+          <button class="btn secondary"
+                  type="submit">
             إنشاء حساب
           </button>
 
@@ -659,128 +532,654 @@
     </section>
 
 
-    <!-- DETAIL -->
+    <!-- ================================
+         DETAIL
+    ================================= -->
 
-    <section
-      id="detail"
-      class="section hidden"
-    >
+    <section class="section hidden"
+             id="detail">
 
-      <div id="detailContent"></div>
+      <div id="detailContent">
+      </div>
 
     </section>
 
 
-    <!-- WATCH -->
+    <!-- ================================
+         WATCH
+    ================================= -->
 
-    <section
-      id="watch"
-      class="section hidden"
-    >
+    <section class="section hidden"
+             id="watch">
 
-      <div id="watchContent"></div>
+      <div id="watchContent">
+      </div>
 
     </section>
 
 
-    <!-- ADMIN -->
+    <!-- ================================
+         ADMIN
+    ================================= -->
 
-    <section
-      id="admin"
-      class="section hidden"
-    >
+    <section class="section"
+             id="admin">
 
-      <div class="section-head">
+      <div class="admin-wrapper">
 
-        <h2>
-          ⚙️ لوحة تحكم SOKA
-        </h2>
+        <div class="section-head">
+
+          <h2>
+            ⚙️ لوحة تحكم SOKA
+          </h2>
+
+        </div>
+
+
+        <div id="adminUserInfo">
+        </div>
+
+
+        <!-- STATS -->
+
+        <div id="stats"
+             class="stats">
+        </div>
+
+
+        <!-- TABS -->
+
+        <div class="admin-tabs">
+
+          <button
+            data-tab="moviesAdmin"
+            class="active"
+            type="button">
+
+            🎬 الأفلام
+
+          </button>
+
+
+          <button
+            data-tab="seriesAdmin"
+            type="button">
+
+            📺 المسلسلات
+
+          </button>
+
+
+          <button
+            data-tab="seasonsAdmin"
+            type="button">
+
+            📚 المواسم
+
+          </button>
+
+
+          <button
+            data-tab="episodesAdmin"
+            type="button">
+
+            🎞️ الحلقات
+
+          </button>
+
+
+          <button
+            data-tab="tvmazeAdmin"
+            type="button">
+
+            📥 TVmaze
+
+          </button>
+
+        </div>
+
+
+        <!-- ================================
+             MOVIES ADMIN
+        ================================= -->
+
+        <div id="moviesAdmin"
+             class="admin-panel">
+
+          <div class="admin-form">
+
+            <h3>
+              🎬 إضافة / تعديل فيلم
+            </h3>
+
+            <form id="movieForm">
+
+              <input id="movieId"
+                     type="hidden">
+
+
+              <div class="form-grid">
+
+                <input
+                  id="movieTitle"
+                  required
+                  placeholder="اسم الفيلم">
+
+
+                <input
+                  id="movieYear"
+                  type="number"
+                  placeholder="السنة">
+
+
+                <input
+                  id="movieGenre"
+                  placeholder="النوع">
+
+
+                <input
+                  id="movieCountry"
+                  placeholder="الدولة">
+
+
+                <input
+                  id="movieDuration"
+                  type="number"
+                  placeholder="المدة بالدقائق">
+
+
+                <input
+                  id="moviePoster"
+                  placeholder="رابط صورة البوستر">
+
+
+                <input
+                  id="movieBackdrop"
+                  placeholder="رابط صورة الخلفية">
+
+
+                <input
+                  id="movieVideo"
+                  placeholder="رابط الفيديو">
+
+
+                <textarea
+                  id="movieDescription"
+                  class="full"
+                  placeholder="وصف الفيلم">
+                </textarea>
+
+              </div>
+
+
+              <div class="check-row">
+
+                <label>
+
+                  <input
+                    id="movieFeatured"
+                    type="checkbox">
+
+                  مميز ⭐
+
+                </label>
+
+
+                <label>
+
+                  <input
+                    id="moviePublished"
+                    type="checkbox"
+                    checked>
+
+                  منشور ✅
+
+                </label>
+
+              </div>
+
+
+              <div class="admin-actions">
+
+                <button class="btn"
+                        type="submit">
+
+                  💾 حفظ الفيلم
+
+                </button>
+
+
+                <button id="cancelMovieEdit"
+                        class="btn btn-secondary"
+                        type="button">
+
+                  إلغاء
+
+                </button>
+
+              </div>
+
+            </form>
+
+          </div>
+
+
+          <div id="moviesAdminList">
+          </div>
+
+        </div>
+
+
+        <!-- ================================
+             SERIES ADMIN
+        ================================= -->
+
+        <div id="seriesAdmin"
+             class="admin-panel hidden">
+
+          <div class="admin-form">
+
+            <h3>
+              📺 إضافة / تعديل مسلسل
+            </h3>
+
+            <form id="seriesForm">
+
+              <input id="seriesId"
+                     type="hidden">
+
+
+              <div class="form-grid">
+
+                <input
+                  id="seriesTitle"
+                  required
+                  placeholder="اسم المسلسل">
+
+
+                <input
+                  id="seriesYear"
+                  type="number"
+                  placeholder="السنة">
+
+
+                <input
+                  id="seriesGenre"
+                  placeholder="النوع">
+
+
+                <input
+                  id="seriesCountry"
+                  placeholder="الدولة">
+
+
+                <input
+                  id="seriesPoster"
+                  placeholder="رابط البوستر">
+
+
+                <input
+                  id="seriesBackdrop"
+                  placeholder="رابط الخلفية">
+
+
+                <input
+                  id="seriesTvmazeId"
+                  type="number"
+                  placeholder="TVmaze ID">
+
+
+                <input
+                  id="seriesTvmazeUrl"
+                  placeholder="رابط TVmaze">
+
+
+                <textarea
+                  id="seriesDescription"
+                  class="full"
+                  placeholder="وصف المسلسل">
+                </textarea>
+
+              </div>
+
+
+              <div class="check-row">
+
+                <label>
+
+                  <input
+                    id="seriesFeatured"
+                    type="checkbox">
+
+                  مميز ⭐
+
+                </label>
+
+
+                <label>
+
+                  <input
+                    id="seriesPublished"
+                    type="checkbox"
+                    checked>
+
+                  منشور ✅
+
+                </label>
+
+              </div>
+
+
+              <div class="admin-actions">
+
+                <button class="btn"
+                        type="submit">
+
+                  💾 حفظ المسلسل
+
+                </button>
+
+
+                <button id="cancelSeriesEdit"
+                        class="btn btn-secondary"
+                        type="button">
+
+                  إلغاء
+
+                </button>
+
+              </div>
+
+            </form>
+
+          </div>
+
+
+          <div id="seriesAdminList">
+          </div>
+
+        </div>
+
+
+        <!-- ================================
+             SEASONS ADMIN
+        ================================= -->
+
+        <div id="seasonsAdmin"
+             class="admin-panel hidden">
+
+          <div class="admin-form">
+
+            <h3>
+              📚 إدارة المواسم
+            </h3>
+
+            <select id="seasonSeriesSelect">
+              <option value="">
+                اختر المسلسل
+              </option>
+            </select>
+
+
+            <form id="seasonForm">
+
+              <input id="seasonId"
+                     type="hidden">
+
+
+              <div class="form-grid">
+
+                <input
+                  id="seasonNumber"
+                  required
+                  type="number"
+                  min="1"
+                  placeholder="رقم الموسم">
+
+
+                <input
+                  id="seasonTitle"
+                  placeholder="اسم الموسم">
+
+
+                <input
+                  id="seasonTvmazeId"
+                  type="number"
+                  placeholder="TVmaze Season ID">
+
+              </div>
+
+
+              <div class="admin-actions">
+
+                <button class="btn"
+                        type="submit">
+
+                  💾 حفظ الموسم
+
+                </button>
+
+
+                <button id="cancelSeasonEdit"
+                        class="btn btn-secondary"
+                        type="button">
+
+                  إلغاء
+
+                </button>
+
+              </div>
+
+            </form>
+
+          </div>
+
+
+          <div id="seasonsAdminList">
+          </div>
+
+        </div>
+
+
+        <!-- ================================
+             EPISODES ADMIN
+        ================================= -->
+
+        <div id="episodesAdmin"
+             class="admin-panel hidden">
+
+          <div class="admin-form">
+
+            <h3>
+              🎞️ إدارة الحلقات
+            </h3>
+
+
+            <select id="episodeSeriesSelect">
+
+              <option value="">
+                اختر المسلسل
+              </option>
+
+            </select>
+
+
+            <select id="episodeSeasonSelect">
+
+              <option value="">
+                اختر الموسم
+              </option>
+
+            </select>
+
+
+            <form id="episodeForm">
+
+              <input id="episodeId"
+                     type="hidden">
+
+
+              <div class="form-grid">
+
+                <input
+                  id="episodeNumber"
+                  required
+                  type="number"
+                  min="1"
+                  placeholder="رقم الحلقة">
+
+
+                <input
+                  id="episodeTitle"
+                  required
+                  placeholder="اسم الحلقة">
+
+
+                <input
+                  id="episodeThumbnail"
+                  placeholder="رابط صورة الحلقة">
+
+
+                <input
+                  id="episodeVideo"
+                  placeholder="رابط الفيديو">
+
+
+                <input
+                  id="episodeDuration"
+                  type="number"
+                  placeholder="المدة بالدقائق">
+
+
+                <input
+                  id="episodeQuality"
+                  placeholder="الجودة مثال 1080p">
+
+
+                <input
+                  id="episodeTvmazeId"
+                  type="number"
+                  placeholder="TVmaze Episode ID">
+
+
+                <input
+                  id="episodeTvmazeUrl"
+                  placeholder="رابط TVmaze">
+
+
+                <input
+                  id="episodeAirdate"
+                  type="date"
+                  placeholder="تاريخ العرض">
+
+
+                <textarea
+                  id="episodeDescription"
+                  class="full"
+                  placeholder="وصف الحلقة">
+                </textarea>
+
+              </div>
+
+
+              <div class="check-row">
+
+                <label>
+
+                  <input
+                    id="episodePublished"
+                    type="checkbox"
+                    checked>
+
+                  منشورة ✅
+
+                </label>
+
+              </div>
+
+
+              <div class="admin-actions">
+
+                <button class="btn"
+                        type="submit">
+
+                  💾 حفظ الحلقة
+
+                </button>
+
+
+                <button id="cancelEpisodeEdit"
+                        class="btn btn-secondary"
+                        type="button">
+
+                  إلغاء
+
+                </button>
+
+              </div>
+
+            </form>
+
+          </div>
+
+
+          <div id="episodesAdminList">
+          </div>
+
+        </div>
+
+
+        <!-- ================================
+             TVMAZE
+        ================================= -->
+
+        <div id="tvmazeAdmin"
+             class="admin-panel hidden">
+
+          <div class="admin-form">
+
+            <h3>
+              📥 استيراد مسلسل من TVmaze
+            </h3>
+
+            <p>
+              اكتب اسم المسلسل ثم ابحث.
+              سيتم استيراد بيانات المسلسل والمواسم والحلقات.
+            </p>
+
+
+            <div class="form-grid">
+
+              <input
+                id="tvmazeSearchInput"
+                class="full"
+                placeholder="مثال: Güller ve Günahlar">
+
+
+            </div>
+
+
+            <div class="admin-actions">
+
+              <button id="tvmazeSearchBtn"
+                      class="btn"
+                      type="button">
+
+                🔎 البحث في TVmaze
+
+              </button>
+
+            </div>
+
+
+            <div id="tvmazeResults">
+            </div>
+
+          </div>
+
+        </div>
 
       </div>
-
-
-      <div
-        id="adminUser"
-        class="panel"
-      >
-        جاري التحقق من صلاحيات المدير...
-      </div>
-
-
-      <!-- STATS -->
-
-      <div
-        id="stats"
-        class="stats"
-      ></div>
-
-
-      <!-- TABS -->
-
-      <div class="admin-tabs">
-
-        <button
-          type="button"
-          data-tab="moviesAdmin"
-          class="active"
-        >
-          🎬 الأفلام
-        </button>
-
-        <button
-          type="button"
-          data-tab="seriesAdmin"
-        >
-          📺 المسلسلات
-        </button>
-
-        <button
-          type="button"
-          data-tab="seasonsAdmin"
-        >
-          📚 المواسم
-        </button>
-
-        <button
-          type="button"
-          data-tab="episodesAdmin"
-        >
-          🎞️ الحلقات
-        </button>
-
-      </div>
-
-
-      <!-- MOVIES ADMIN -->
-
-      <div
-        id="moviesAdmin"
-        class="admin-panel"
-      ></div>
-
-
-      <!-- SERIES ADMIN -->
-
-      <div
-        id="seriesAdmin"
-        class="admin-panel hidden"
-      ></div>
-
-
-      <!-- SEASONS ADMIN -->
-
-      <div
-        id="seasonsAdmin"
-        class="admin-panel hidden"
-      ></div>
-
-
-      <!-- EPISODES ADMIN -->
-
-      <div
-        id="episodesAdmin"
-        class="admin-panel hidden"
-      ></div>
 
     </section>
 
@@ -789,23 +1188,26 @@
 
   <footer>
 
-    SOKA © 2026
-    <br>
-
+    SOKA © 2026 —
     للمحتوى المصرح بعرضه فقط.
 
   </footer>
 
 
-  <!-- ================= SCRIPTS ================= -->
+  <!-- CONFIG -->
 
   <script src="config.js"></script>
 
-  <script
-    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
-  ></script>
+
+  <!-- SUPABASE -->
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+
+  <!-- APP -->
 
   <script src="app.js"></script>
 
 </body>
+
 </html>
